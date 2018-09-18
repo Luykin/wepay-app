@@ -1,0 +1,304 @@
+<style lang="scss">
+  .container{
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      .orderBox{
+          width:96%;
+          display: flex;
+          margin-left: 2%;
+          margin-right: 2%;
+          justify-content: space-between;
+          background: white;
+          border-radius: 10rpx;
+          margin-top: 10rpx;
+          transition: 1s;
+          .infoBox{
+              width: 80%;
+              padding: 10rpx;
+              .info{
+                  width: 100%;
+                  display: flex;
+                  justify-content: space-around;
+                  font-size: 28rpx;
+                  
+                  .goods{
+                      width: 50%;
+                      text-align: left;
+                      .goodsText{
+                          color: #ffa028;
+                      }
+                  }
+                  .price{
+                      width: 50%;
+                      text-align: right;
+                      .priceText{
+                          color: #ffa028;
+                      }
+                  }
+              }
+              .time,.state{
+                  font-size: 28rpx;
+                  width:80%;
+                  text-align: left;
+                  color: gray;
+              }
+              .state{
+                  width: 100%;
+              }  
+
+          }
+          .btnBox{
+              width: 20%;
+               padding: 10rpx;
+               display: flex;
+               justify-content: center;
+               align-items: center;
+               .btn{
+                   font-size: 28rpx;
+                   width: 120rpx;
+                   height: 70rpx;
+                   background: #ffa028;
+                   color: white;
+               }
+          }
+      }
+  }
+    .emptyText{
+        font-size: 36rpx;
+        font-weight: 900;
+        color: #161d42;
+        margin-top:50rpx;
+        .refundTitle{
+            font-size: 28rpx;
+            color: #161d42;
+        }
+        .refundText{
+            font-size: 24rpx;
+            color: #161d42;
+        }
+      }
+      .refundTip{
+          width:90%;
+          margin:0 auto;
+          font-size: 26rpx;
+          color: #965d19;
+      }
+</style>
+<template>
+  <view class="container">
+      <view class="refundTip">温馨提示：退款一般在3-5个工作日完成，如有逾期，请及时联系客服。</view>
+      <repeat for="{{refundOrderList}}" index="index" key="index" item="item">
+          <view class="orderBox" wx:if="{{item.can_refund&&item.payment_can_refund}}">
+              <view class="infoBox">
+                  <view class="info">
+                      <view class="goods">商品：<text class="goodsText">{{item.good}}</text></view>
+                      <view class="price">价格：<text class="priceText">￥{{item.price}}</text></view>
+                  </view>
+                  <view class="time">支付时间：{{item.create}}</view>
+                  <view class="state">订单状态：{{item.status}}</view>
+              </view>
+              <view class="btnBox">
+                  <button class="btn" data-item="{{item}}" @tap="refund" wx:if="{{item.status=='已支付'}}">退款</button>
+              </view>
+          </view>
+      </repeat>
+      <view class="emptyText" wx:if="{{showEmpty}}">
+          您没有满足退款条件的消费记录
+          <view class="refundTitle">退款条件：</view>
+          <view class="refundText">1.有在24小时内购买积分的交易记录。</view>
+          <view class="refundText">2.购买积分后没有使用。</view>
+      </view>
+      
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class refund extends wepy.page {
+    config = {
+     "navigationBarTitleText": "退款",
+      "navigationBarBackgroundColor": "#F04F43",
+      "navigationBarTextStyle": "white",
+      "disableScroll": true,
+      "enablePullDownRefresh":true,
+      "backgroundTextStyle":"dark"
+    }
+    components = {
+
+    }
+    data = {
+      refundOrderList:[],
+      showEmpty:false
+    }
+
+    computed = {
+    
+    }
+
+    methods = {
+        getOrderList(that){
+            
+             wepy.request({
+                  url:`${that.$parent.globalData.server_url}/order_list`,
+                  data:{
+                   
+                    user_id:that.$parent.globalData.userInfo.id,
+                    key:that.$parent.globalData.util.getKey(),
+                    uaid:that.$parent.globalData.uaid
+
+                  },
+                  header: { "Content-Type": "application/x-www-form-urlencoded" },
+                  method: 'POST',
+                  success:res=>{
+                            
+                            console.log(res.data);
+                            
+                               res.data.forEach(element => {
+                                       element.create=that.methods.timeChange(element.create);
+                                       if(element.status==2)
+                                       {
+                                           element.status="已支付"
+                                       }  
+                                       else if(element.status==5)    
+                                       {
+                                           element.status="申请退款中"
+                                       }
+                                       else if(element.status==6)
+                                       {
+                                           element.status="退款完成"
+                                       }
+                                       else if(element.status==7)
+                                       {
+                                           element.status="同意退款"
+                                       }
+                                       if(element.can_refund&&element.payment_can_refund)
+                                       {
+                                           that.refundOrderList.push(element)
+                                       }
+                                       else{
+                                           that.showEmpty=false;
+                                       }
+
+                               });
+                               if(that.refundOrderList.length==0)
+                                {
+                                     that.showEmpty=true;
+                                }
+                               that.$apply();
+                           
+                  }
+                });
+                
+        },
+        timeChange(time) {
+            let date = new Date(time * 1000)
+            const M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-'
+            const D = date.getDate()< 10 ? '0' + date.getDate() + ':' : date.getDate() + ' '
+            const h = date.getHours() < 10 ? '0' + date.getHours() + ':' : date.getHours() + ':'
+            const m = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()
+            return M + D + h + m
+        },
+        refund(e){
+            const that=this;
+            console.log(e.currentTarget.dataset.item);
+            wx.showModal({
+                    title: '提示',
+                    content: '确定要退款吗？',
+                    confirmColor:'#5e6dfc',
+                    success: function(res) {
+                    if (res.confirm) {
+                         console.log('用户点击确定')
+                          that.$parent.globalData.sensors.track('WxRefundOrder',{});
+                                wepy.request({
+                                    url:`${that.$parent.globalData.server_url}/refund_order`,
+                                    data:{
+                   
+                                        user_id:that.$parent.globalData.userInfo.id,
+                                        order_id:e.currentTarget.dataset.item.order_id,
+                                        sign:that.$parent.globalData.util.getSign({
+                                                user_id:that.$parent.globalData.userInfo.id,
+                                                order_id:e.currentTarget.dataset.item.order_id
+                                        }),
+                                         },
+                                    header: { "Content-Type": "application/x-www-form-urlencoded" },
+                                    method: 'POST',
+                                    success:res=>{
+                                            console.log(res);
+                                            if(res.data.status=='ok')
+                                            {
+                                                wx.showToast({
+                                                    title: '退款成功',
+                                                    icon: 'success',
+                                                    duration: 2000
+                                                });
+                                                wx.login({
+                                                        success:res=>{
+                                                            if(res.code)
+                                                            {
+                                                                that.$parent.globalData.code=res.code;
+                                                                wepy.request({
+                                                                url:`${that.$parent.globalData.server_url}/login`,
+                                                                data:{
+                                                                    code:res.code,
+                                                                    nickname:that.$parent.globalData.userInfo.nickName,
+                                                                    avatar:that.$parent.globalData.userInfo.avatarUrl,
+                                                                    uaid:that.$parent.globalData.uaid,
+                                                                    key:that.$parent.globalData.util.getKey(),
+                                                                    channel:'wx'
+                                                                },
+                                                                header: { "Content-Type": "application/x-www-form-urlencoded" },
+                                                                method: 'POST',
+                                                                success:res=>{
+                                                                    if(res.data.user)
+                                                                    {
+                                                                    that.$parent.globalData.userInfo.score=res.data.user.score;
+                                                                    console.log(that.$parent.globalData.userInfo.score)
+                                                                    that.$apply();
+                                                                    that.$parent.globalData.sensors.track('WxRefund',{});
+                                                                    
+                                                                    }
+                                                                },
+                                                                fail:res=>{
+                                                                    console.log(res);
+                                                                }
+                                                                });
+                                                            }
+                                                        }
+                                                        });
+                                            }
+                                            else if(res.data.status=='error'){
+                                                wx.showToast({
+                                                    title: '该订单正在退款中~',
+                                                    icon: 'none',
+                                                    duration: 2000
+                                                });
+                                            }
+                                            }
+                                });
+                    } else if (res.cancel) {
+                        console.log('用户点击取消')
+                    }
+                  }
+                })
+        }
+    
+    }
+    onLoad() {
+      this.refundOrderList=[];
+      this.methods.getOrderList(this);  
+     }
+     onPullDownRefresh(){
+        if(this.$parent.globalData.userInfo)
+        {
+        console.log("下拉刷新");
+        this.refundOrderList=[];
+        this.methods.getOrderList(this); 
+				setTimeout(function(){
+						wx.stopPullDownRefresh();
+				},2000)
+        }
+     }
+  }
+</script>

@@ -1,0 +1,43 @@
+<style lang="scss">
+ page{
+     .swiper{
+       width: 100%;
+       .swiper-item{
+         width: 100%;
+         .itemImg{
+           width: 100%;
+         }
+       }
+     }
+ }
+</style>
+<template>
+
+        <swiper class="swiper">
+          <swiper-item class="swiper-item">
+                  <image mode="widthFix" src="../assets/image/banner.png" class="itemImg"/>
+          </swiper-item>
+        </swiper>
+        
+
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class swiper extends wepy.component {
+
+    components = {
+
+    }
+    data = {
+      
+    }
+
+    methods = {
+    
+    }
+    onLoad() {
+      
+     }
+  }
+</script>

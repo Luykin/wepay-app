@@ -1,0 +1,98 @@
+<style lang="scss">
+  .container{
+      width: 100%;
+      .recordItem{
+          width: 100%;
+          background: white;
+          height: 60rpx;
+          display: flex;
+          justify-content: space-around;
+          margin-top:10rpx;
+          font-size: 28rpx;
+          line-height: 60rpx;
+            .label,.score,.time{
+                width: 33.33%;
+                color: gray;
+                text-align: center;
+            }
+      }
+}
+</style>
+<template>
+  <view class="container">
+            <view class="recordItem">
+                <view class="label">类型</view>
+                <view class="score">积分</view>
+                <view class="time">时间</view>
+            </view>
+      <repeat for="{{recordList}}" index="index" key="index" item="item">
+            <view class="recordItem">
+                <view class="label">{{item.label}}</view>
+                <view class="score">{{item.score>0?'+'+item.score:item.score}}</view>
+                <view class="time">{{item.create}}</view>
+            </view>
+      </repeat>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class record extends wepy.page {
+    config = {
+      "navigationBarTitleText": "粉币记录",
+      "navigationBarBackgroundColor": "#F04F43",
+      "navigationBarTextStyle": "white",
+      "disableScroll": true
+    }
+    components = {
+
+    }
+    data = {
+        recordList:[]
+    }
+
+    computed = {
+    
+    }
+
+    methods = {
+        getRecord(that){
+            wepy.request({
+                  url:`${that.$parent.globalData.server_url}/score_record`,
+                  data:{
+                   
+                    user_id:that.$parent.globalData.userInfo.id,
+                    key:that.$parent.globalData.util.getKey()
+
+                  },
+                  header: { "Content-Type": "application/x-www-form-urlencoded" },
+                  method: 'POST',
+                  success:res=>{
+                            console.log(res);
+                            that.recordList=res.data;
+                            that.recordList.forEach(element => {
+                                element.create=that.methods.timeChange(element.create)
+                            });
+                            that.$apply();
+                  }
+                });
+        },
+        timeChange(time) {
+            let date = new Date(time * 1000)
+            const M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-'
+            const D = date.getDate()< 10 ? '0' + date.getDate() + ':' : date.getDate() + ':'
+            const h = date.getHours() < 10 ? '0' + date.getHours() + ':' : date.getHours() + ':'
+            const m = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()
+            return M + D + h + m
+        }
+    
+    }
+    onLoad() {
+        if(this.$parent.globalData.userInfo)
+        {
+            this.methods.getRecord(this);
+        }
+      
+     }
+  }
+</script>

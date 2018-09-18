@@ -1,0 +1,129 @@
+<style lang="scss">
+.container{
+  width: 100%;
+  .marquee{
+    height: 8%;
+    position: fixed;
+    top: 0%;
+    box-shadow: 0rpx 1rpx 12rpx -3rpx rgb(182, 182, 182);
+  }
+  .topItemBox:nth-of-type(2){
+    margin-top: 15%;
+  }
+  .topItemBox{
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    height: 100rpx;
+    line-height: 100rpx;
+    align-items: center;
+    background: white;
+    margin-bottom: 10rpx;
+    .num{
+      color: #000;
+      font-weight: 900;
+      width: 30rpx;
+    }
+    .img{
+      width: 70rpx;
+      height: 70rpx;
+      border-radius: 35rpx;
+    }
+    .username{
+      width: 270rpx;
+      font-size: 26rpx;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap
+    }
+    .score{
+      font-size: 32rpx;
+      color: #ffa028;
+    }
+  }
+  .topItemBox:nth-of-type(2) .num{
+   color: gold;
+ }
+ .topItemBox:nth-of-type(3) .num{
+   color: silver;
+ }
+ .topItemBox:nth-of-type(4) .num{
+   color: rgb(182, 118, 0);
+ }
+ .emptyText{
+  font-size: 36rpx;
+  font-weight: 900;
+  color: #161d42;
+}
+}
+</style>
+<template>
+  <view class="container">
+    <marquee class="marquee"></marquee>
+    <repeat for="{{tops}}" index="index" key="index" item="item" >
+      <view class="topItemBox">
+        <view class="num">{{item.id}}</view>
+        <image src="{{item.user__avatar}}" class="img"/>
+        <view class="username">{{item.user__nickname}}</view>
+        <view class="username">贡献积分：<text class="score">{{item.num}}</text></view>
+      </view>
+    </repeat>
+    <view wx:if="{{showEmpty}}" class="emptyText">
+      今日榜首虚位以待~
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import marquee from '../components/marquee'
+  export default class red extends wepy.page {
+    config = {
+      "navigationBarTitleText": "红人榜",
+      "navigationBarBackgroundColor": "#F04F43",
+      "navigationBarTextStyle": "white",
+    }
+    components = {
+      marquee:marquee
+    }
+    data = {
+      tops:[],
+      showEmpty:false
+    }
+
+    computed = {
+
+    }
+
+    methods = {
+      getTop(that){
+        wepy.request({
+          url:`${that.$parent.globalData.server_url}/daily_consume_top`,
+          data:{           
+            sign:that.$parent.globalData.util.getSign({})
+          },
+          header: { "Content-Type": "application/x-www-form-urlencoded" },
+          method: 'POST',
+          success:res=>{
+            that.tops=res.data;
+            let i=1;
+            that.tops.forEach(element => {
+              element.id=i++;
+            });
+            console.log(that.tops);
+            if(that.tops.length==0)
+            {
+              that.showEmpty=true;
+            }
+            that.$apply();
+
+          }
+        });
+
+      }
+    }
+    onLoad() {
+      this.methods.getTop(this);
+    }
+  }
+</script>

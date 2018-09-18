@@ -1,0 +1,110 @@
+<style lang="scss">
+page{
+  height: 100%
+}
+.container{
+  width: 100%;
+  height: 100%;
+    background: #f6f6f6;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    font-size: 30rpx;
+    .textarea{
+      width: 100%;
+      background: white;
+      padding-left: 30rpx;
+    }
+    .input{
+      padding-left: 30rpx;
+      margin-top: 10rpx;
+      width: 100%;
+      background: white;
+      height: 80rpx;
+    }
+    .btn{
+      width: 70%;
+      margin: 0 auto;
+      border-radius: 45rpx;
+      background: #161d42;
+      margin-top: 50rpx;
+      color: white;
+    }
+}
+</style>
+<template>
+  <view class="container">
+        <textarea placeholder="输入您要反馈的信息" class="textarea" bindinput='areaInput'/>
+        <input placeholder="输入您的联系方式（微信/QQ/邮箱）" maxlength='20' class="input" bindinput='textInput'/>
+        <button class="btn" @tap='submit'>提交</button>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class Return extends wepy.page {
+    config = {
+      navigationBarTitleText: '意见反馈',
+      navigationBarBackgroundColor: '#161d42'
+    }
+    components = {
+
+    }
+    data = {
+          textareaInput:"",
+          textInput:"",
+          issubmit:false
+    }
+
+    computed = {
+    
+    }
+
+    methods = {
+        submit(){
+          if(this.issubmit)
+          {
+             wx.showToast({
+              title: '您已经提交过啦~',
+              icon: 'none',
+              duration: 2000
+            })
+          }
+          else if(this.textareaInput=="")
+          {
+            wx.showToast({
+              title: '信息不能为空~',
+              icon: 'none',
+              duration: 2000
+            })
+          }
+          else if(this.textInput=="")
+          {
+            wx.showToast({
+              title: '联系方式不能为空~',
+              icon: 'none',
+              duration: 2000
+            })
+          }
+          else{
+              wx.showToast({
+                  title: '提交成功',
+                  icon: 'success',
+                  duration: 2000
+              })
+              this.issubmit=true;
+          }
+          
+        },
+        areaInput(e){
+            this.textareaInput=e.detail.value;
+        },
+        textInput(e){
+            this.textInput=e.detail.value;
+        }
+    }
+    onLoad() {
+      
+     }
+  }
+</script>

@@ -1,0 +1,207 @@
+<style lang="scss">
+  .container{
+    width: 100%;
+    font-size: 28rpx;
+     color: gray;
+    .orderBox{
+        width: 94%;
+        margin-left: 3%;
+        margin-right: 3%;
+        background: white;
+        border-radius: 20rpx;
+        margin-top: 10rpx;
+        margin-bottom: 10rpx;
+        padding: 20rpx;
+        .labelBox,.state{
+            width: 100%;    
+            display: flex;
+            justify-content: space-between;
+            .label{
+                color: #ffa028;
+            }
+        }
+        .info{
+            width: 100%;
+            .infoText{
+                border-top: 1rpx solid #f6f6f6;
+                margin-top:15rpx;
+
+            }
+            .infoLink{
+                width: 100%;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+        
+
+    }
+    .emptyText{
+        font-size: 36rpx;
+        font-weight: 900;
+        color: #161d42;
+        margin-top:50rpx;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        image{
+            width: 216rpx;
+            height: 186rpx;
+            transform: scale(1.5);
+        }
+        text{
+            margin-top: 50rpx;
+            font-size: 28rpx;
+            color:#d4d4d4;
+        }
+      }
+  }
+</style>
+<template>
+  <view class="container">
+      <repeat for="{{orders}}" index="index" key="index" item="item">
+             <view class="orderBox">
+                 <view class="labelBox">
+                     <text class="label">{{item.label}}</text>
+                     <text class="create">{{item.create}}</text>
+                 </view>
+                 
+                 <view class="state">
+                     <text class="stateText">目前进度：</text>
+                     <text class="stateCode">{{item.status}}</text>
+                 </view>
+                 <view class="info">
+                     <view class="infoText">任务链接：</view>
+                     <view class="infoLink">{{item.addition}}</view>
+                 </view>
+             </view>
+      </repeat>
+    <view class="emptyText" wx:if="{{showEmpty}}">
+        <image src="../assets/record/noRecord.png"/>
+        <text class="tip">宝宝还没有订单~</text>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class myOrder extends wepy.page {
+    config = {
+      "navigationBarTitleText": "我的订单",
+      "navigationBarBackgroundColor": "#F04F43",
+      "navigationBarTextStyle": "white",
+      "disableScroll": true,
+      "enablePullDownRefresh":true,
+      "backgroundTextStyle":"dark"
+    }
+    components = {
+
+    }
+    data = {
+      orders:[],
+      showEmpty:false
+    }
+
+    computed = {
+    
+    }
+
+    methods = {
+        getOrders(that){
+            wepy.request({
+                  url:`${that.$parent.globalData.server_url}/task_list`,
+                  data:{
+                    
+                    key:that.$parent.globalData.util.getKey(),
+                    user_id:that.$parent.globalData.userInfo.id
+                  },
+                  header: { "Content-Type": "application/x-www-form-urlencoded" },
+                  method: 'POST',
+                  success:res=>{
+                    console.log(res)
+                    that.orders=res.data;
+                    that.orders.forEach(element => {
+                        element.create=that.methods.timeChange(element.create);
+                         if(element.status==0)
+                        {
+                            element.status="准备中";
+                        }
+                        else if(element.status==1)
+                        {
+                            element.status="进行中";
+                        }
+                        else if(element.status==2)
+                        {
+                            element.status="已完成";
+                        }
+                        else if(element.status==3)
+                        {
+                            element.status="提交成功，支付失败";
+                        }
+                        else if(element.status==4)
+                        {
+                            element.status="人工服务退款中";
+                        }
+                        else if(element.status==5)
+                        {
+                            element.status="已退粉币";
+                        }
+                        else if(element.status==-6)
+                        {
+                            element.status="填写错误";
+                        }
+                        else if(element.status==-8)
+                        {
+                            element.status="订单无访问权限";
+                        }
+                        
+                    });
+                    if(that.orders.length==0)
+                    {
+                         that.showEmpty=true;    
+                     }
+                     else{
+                         that.showEmpty=false; 
+                     }
+                    that.$apply();
+                  }
+                });
+        },
+        timeChange(time) {
+            let date = new Date(time * 1000)
+            const M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-'
+            const D = date.getDate()< 10 ? '0' + date.getDate() + ':' : date.getDate() + ' '
+            const h = date.getHours() < 10 ? '0' + date.getHours() + ':' : date.getHours() + ':'
+            const m = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()
+            return M + D + h + m
+        }
+    
+    }
+    onLoad() {
+        if(this.$parent.globalData.userInfo)
+        {
+            this.methods.getOrders(this);
+        }
+        else{
+            this.showEmpty=true;
+            this.$apply();
+        }
+     }
+     onPullDownRefresh(){
+          if(this.$parent.globalData.userInfo)
+        {
+        console.log("下拉刷新");
+        this.methods.getOrders(this);
+				setTimeout(function(){
+						wx.stopPullDownRefresh();
+						wx.showToast({
+										title:'订单刷新成功',
+										icon:'success',
+										mask:true
+										});
+				},2000)
+        }
+     }
+  }
+</script>

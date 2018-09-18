@@ -1,0 +1,96 @@
+<style lang="scss">
+page {
+  .marquee {
+    width: 94%;
+    margin: 10rpx auto;
+    background: white;
+    border-radius: 1000rpx;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 5;
+    .voice {
+      display: block;
+      width: 40rpx;
+      height: 40rpx;
+    }
+    .marqueeSwiper {
+      width: 90%;
+      height: 100%;
+      .marqueeSwiperItem {
+        height: 100%;
+        margin-top: 25rpx;
+        .title {
+          font-size: 28rpx;
+          text-align: center;
+          .nickname {
+            color: #ffa028;
+          }
+        }
+      }
+    }
+  }
+}
+
+</style>
+<template>
+  <view class='marquee'>
+    <image src="../assets/index/speaker.png" class="voice" />
+    <swiper class='marqueeSwiper' autoplay='true' interval="2000" duration="2000" bindchange="newsId" data-newsId='{{item.id}}' circular='ture' vertical="true">
+      <swiper-item wx:for="{{news}}" wx:key="" class="marqueeSwiperItem">
+        <view class='title'>
+          用户
+          <text class="nickname">{{item.nickname}}</text>购买{{item.good_label}}
+        </view>
+      </swiper-item>
+    </swiper>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+export default class marquee extends wepy.component {
+
+  components = {
+
+  }
+  data = {
+    news: [],
+    newId: 0
+
+  }
+
+  methods = {
+    newsId(e) {
+      var that = this
+      var item = e.detail.current;
+      this.setData({
+        newsId: that.data.news[item].id
+      })
+    }
+  }
+  onLoad() {
+    const that = this;
+    wepy.request({
+      url: `${that.$parent.$parent.globalData.server_url}/latest_orders`,
+      data: {
+        uaid: that.$parent.$parent.globalData.uaid,
+        key: that.$parent.$parent.globalData.util.getKey(),
+      },
+      header: { "Content-Type": "application/x-www-form-urlencoded" },
+      method: 'POST',
+      success: res => {
+        if (res.data) {
+          that.news = res.data;
+          let i = 0;
+          that.news.forEach(element => {
+            element.id = i;
+            i++;
+          });
+          that.$apply();
+        }
+      }
+    });
+  }
+}
+
+</script>

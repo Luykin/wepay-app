@@ -1,0 +1,70 @@
+<style lang="scss">
+page{
+    height: 100%;
+    width: 100%;
+    .container{
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        .getBtn{
+            width: 80%;
+            height: 100rpx;
+            background: #161d42;
+            color: white;
+            font-weight: 900;
+            text-align: center;
+            border-radius: 50rpx;
+            margin-top: 50rpx;
+        }
+        .img{
+            width: 300rpx;
+            height: 300rpx;
+            margin-top: 20rpx;
+            text-align: center;
+            transition: 1s ;
+        }
+        .hide{
+            opacity: 0;
+        }
+        .show{
+            opacity: 1;;
+        }
+  }
+}
+  
+</style>
+<template>
+  <view class="container">
+       <button type="primary" size="40" session-from="nickName={{userInfo.nickname}}#{{userInfo.id}}|avatarUrl={{userInfo.avatar}}" open-type="contact">联系客服</button>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  export default class customerService extends wepy.page {
+    config = {
+      navigationBarTitleText: '联系客服',
+      navigationBarBackgroundColor: '#F04F43'
+    }
+    components = {
+
+    }
+    data = {
+        userInfo:{}
+    }
+    computed = {
+    
+    }
+
+    methods = {
+    }
+    onLoad() {
+        const that=this;
+        that.userInfo=that.$parent.globalData.userInfo;
+        that.$apply();
+        console.log(that.userInfo);
+     }
+  }
+</script>

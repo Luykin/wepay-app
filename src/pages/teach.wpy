@@ -1,0 +1,40 @@
+<style lang="scss">
+
+        .teachImg{
+            width: 100%;
+        }
+ 
+</style>
+<template>
+  
+      <image mode="widthFix" src="{{url}}" class="teachImg"/>
+
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class teach extends wepy.page {
+    config = {
+      navigationBarTitleText: '教程'
+    }
+    components = {
+
+    }
+    data = {
+      url:''
+    }
+
+    computed = {
+    
+    }
+
+    methods = {
+    
+    
+    }
+    onLoad(options) {
+      console.log(options)
+      this.url=options.url;
+     }
+  }
+</script>

@@ -1,0 +1,40 @@
+<style lang="scss">
+.container{
+    .tutorial-image{
+      width: 100%;
+    }
+}
+</style>
+<template>
+  <view class="container">
+        <image src='{{imgSrc}}' wx:if="{{imgSrc}}" mode='widthFix' class='tutorial-image'/>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class Detail extends wepy.page {
+    config = {
+      navigationBarTitleText: '粉丝必读',
+      navigationBarBackgroundColor: '#F04F43'
+    }
+    components = {
+
+    }
+    data = {
+          imgSrc:""
+    }
+
+    computed = {
+    
+    }
+
+    methods = {
+
+    }
+    onLoad(options) {
+     this.imgSrc=options.src;
+     this.$apply();
+     }
+  }
+</script>

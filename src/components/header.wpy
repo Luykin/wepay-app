@@ -1,0 +1,309 @@
+<style lang="scss">
+page {
+  .header {
+    width: 100%;
+    height: 500rpx;
+    background: -prefix-linear-zgradient(top, #f04f43, #f7a052);
+    background: linear-gradient(to bottom, #f04f43, #f7a052);
+    .header-top {
+      width: 100%;
+      height: 140rpx;
+      display: flex;
+      flex-direction: row;
+      .headBox {
+        display: flex;
+        flex: 1;
+        margin-left: 30rpx;
+        position: relative;
+        justify-content: flex-start;
+        .headImg {
+          position: absolute;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 1;
+        }
+      }
+      .signBox {
+        display: flex;
+        flex-flow: row-reverse;
+        flex: 1;
+        image {
+          width: 192rpx;
+          height: 80rpx;
+          transform: scale(0.7)
+        }
+      }
+    }
+    .header-bottom {
+      width: 100%;
+      height: 100rpx;
+      .scoreBox {
+        width: 65%;
+        display: flex;
+        align-items: center;
+        image {
+          width: 55rpx;
+          height: 55rpx;
+          margin-left: 20rpx;
+        }
+        .score {
+          font-size: 30rpx;
+          color: white;
+          margin-left: 20rpx;
+        }
+      }
+      .buyBox {
+        width: 35%;
+        border-left: 2rpx solid white;
+        .buyBtn {
+          float: right;
+          font-size: 30rpx;
+          margin-right: 20rpx;
+          width: 80%;
+          color: white;
+          text-align: center;
+          line-height: 57rpx;
+          border: 2rpx solid white;
+          border-radius: 15rpx;
+          height: 57rpx;
+        }
+      }
+    }
+  }
+}
+
+</style>
+<style scoped>
+.info-box {
+  flex-wrap: wrap;
+  font-size: 28rpx;
+  color: white;
+}
+
+.info-box-item {
+  width: 100%;
+  height: 50%;
+  flex-grow: 1;
+  flex-shrink: 0;
+  text-indent: 20rpx;
+  justify-content: flex-start;
+}
+
+.header-img-warp {
+  position: relative;
+  width: 130rpx;
+  height: 130rpx;
+  flex-shrink: 0;
+  border-radius: 1000rpx;
+  overflow: hidden;
+}
+
+</style>
+<template>
+  <view class="header">
+    <view class="header-top">
+      <view class="headBox">
+        <div class="header-img-warp">
+          <image src="{{userInfo.avatar?userInfo.avatar:'../assets/index/login.png'}}" class="headImg" />
+          <button open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="onGotUserInfo" class="headImg" style="opacity:0; z-index: 2; padding: 0;"></button>
+        </div>
+        <view class="info-box flex">
+          <view class="info-box-item flex" wx:if="{{userInfo.nickname}}">{{userInfo.nickname}}</view>
+          <view class="info-box-item flex" wx:else>{{nickname}}</view>
+          <view class="info-box-item flex" wx:if="{{userInfo.id}}">ID:{{userInfo.id}}</view>
+          <view class="info-box-item flex" wx:else>ID:{{id}}</view>
+        </view>
+      </view>
+      <view class="signBox">
+        <image src="../assets/index/check.png" @tap='sign' />
+      </view>
+    </view>
+    <view class="header-bottom flex">
+      <view class="scoreBox">
+        <image src="../assets/index/PinkCoin.png" />
+        <view class="score" wx:if="{{score}}">粉币：{{score}}</view>
+        <view class="score" wx:else>粉币：{{score}}</view>
+      </view>
+      <view class="buyBox">
+        <view class="buyBtn" @tap='toBuyScore'>购买粉币</view>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+export default class header extends wepy.component {
+
+  components = {
+
+  }
+  data = {
+    nickname: "请点击头像登录",
+    id: "请登录",
+    score: 0,
+    userInfo: {},
+    loginState: false
+  }
+
+  methods = {
+    _dosome(event) {
+      console.log(event)
+    },
+    toBuyScore() {
+      const that = this;
+      if (this.$parent.$parent.globalData.userInfo) {
+        wx.navigateTo({
+          url: 'buyScore'
+        })
+        that.$parent.$parent.globalData.sensors.track('WxBuyScore', {});
+      } else {
+        wx.showToast({
+          title: '未登录',
+          image: "../assets/icon/warn.png",
+          icon: 'none',
+          duration: 2000,
+          mask: true
+        })
+      }
+
+    },
+    sign() {
+      let that = this;
+      if (!this.$parent.$parent.globalData.userInfo && !this.$parent.$parent.globalData.islogin) {
+        wx.showToast({
+          title: '未登录',
+          image: "../assets/icon/warn.png",
+          duration: 2000,
+          mask: true
+        })
+      } else if (this.$parent.$parent.globalData.userInfo.nickname && this.$parent.$parent.globalData.islogin) {
+        if (this.$parent.$parent.globalData.islogin == -1) {
+          wx.showToast({
+            title: '已经签过啦~',
+            image: "../assets/icon/warn.png",
+            duration: 2000,
+            mask: true
+          })
+          return;
+        } else {
+          this.$parent.$parent.globalData.islogin = -1;
+          wepy.request({
+            url: `${that.$parent.$parent.globalData.server_url}/sign`,
+            data: {
+              user_id: that.$parent.$parent.globalData.userInfo.id,
+              key: that.$parent.$parent.globalData.util.getKey(),
+
+            },
+            header: { "Content-Type": "application/x-www-form-urlencoded" },
+            method: 'POST',
+            success: res => {
+              if (res.data.user) {
+                that.$parent.$parent.globalData.userInfo.score = res.data.user.score;
+                that.userInfo = that.$parent.$parent.globalData.userInfo;
+                that.score = res.data.user.score;
+                that.$apply();
+                that.methods.updateUserInfo(that);
+                wx.showToast({
+                  title: '签到成功',
+                  icon: 'success',
+                  duration: 2000,
+                  mask: true
+                });
+                that.$parent.$parent.globalData.sensors.track('WxSign', {});
+              } else {
+                wx.showToast({
+                  title: "已经签过啦~",
+                  image: "../assets/icon/warn.png",
+                  duration: 2000,
+                  mask: true
+                });
+              }
+            }
+          });
+
+        }
+
+      }
+
+    },
+    updateUserInfo(that) {
+      var timer = setInterval(function() {
+
+        if (that.$parent.$parent.globalData.userInfo) {
+          that.userInfo = that.$parent.$parent.globalData.userInfo;
+          that.score = that.$parent.$parent.globalData.userInfo.score;
+          that.$apply();
+        }
+      }, 2000)
+    },
+    onGotUserInfo(e) {
+      this.loginState = this.$parent.$parent.globalData.islogin;
+      if (this.loginState) {
+        return;
+      }
+      wx.showLoading({
+        title: '登录中'
+      });
+      this.user = e.detail.userInfo;
+      let that = this;
+      wx.login({
+        success: res => {
+          if (res.code) {
+            that.$parent.$parent.globalData.code = res.code;
+            wepy.request({
+              url: `${that.$parent.$parent.globalData.server_url}/login`,
+              data: {
+                code: res.code,
+                nickname: that.user.nickName,
+                avatar: that.user.avatarUrl,
+                uaid: that.$parent.$parent.globalData.uaid,
+                key: that.$parent.$parent.globalData.util.getKey(),
+                channel: 'wx'
+              },
+              header: { "Content-Type": "application/x-www-form-urlencoded" },
+              method: 'POST',
+              success: res => {
+                if (res.data.user) {
+                  that.$parent.$parent.globalData.userInfo = res.data.user;
+                  that.userInfo = that.$parent.$parent.globalData.userInfo;
+                  that.score = that.$parent.$parent.globalData.userInfo.score;
+                  that.$apply();
+                  wx.hideLoading();
+                  wx.showToast({
+                    title: '登录成功',
+                    icon: 'success',
+                    duration: 2000,
+                    mask: true
+                  });
+                  that.$parent.$parent.globalData.sensors.login(res.data.user.id);
+                  that.$parent.$parent.globalData.sensors.init();
+                  that.$parent.$parent.globalData.sensors.track('WxLogin', {});
+
+                }
+              },
+              fail: res => {
+                console.log(res);
+              }
+            });
+          }
+        }
+      });
+      this.$parent.$parent.globalData.islogin = true;
+      this.loginState = this.$parent.$parent.globalData.islogin;
+      this.$apply();
+    },
+  }
+  onLoad() {
+    this.userInfo = this.$parent.$parent.globalData.userInfo;
+    this.methods.updateUserInfo(this);
+    this.$apply();
+  }
+  onShow() {
+    this.userInfo = this.$parent.$parent.globalData.userInfo;
+    this.methods.updateUserInfo(this);
+    this.$apply();
+  }
+}
+
+</script>

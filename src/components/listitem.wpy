@@ -1,0 +1,190 @@
+<style lang="scss">
+page {
+  background: white;
+  .list {
+    height: 77%;
+    width: 100%;
+    margin: 0 auto;
+    top: 22%;
+    position: fixed;
+    padding-top: 10%;
+    .line {
+      width: 100%;
+      height: 15rpx;
+      background: #f8f8f8;
+      border-radius: 7rpx;
+    }
+    .title {
+      margin-top: 20rpx;
+      width: 100%;
+      height: 36rpx;
+      font-size: 32rpx;
+      line-height: 36rpx;
+      color: #161d42;
+      text-align: center;
+      font-weight: 900;
+    }
+    .title:nth-of-type(2) {
+      margin-top: 64rpx;
+    }
+    .serviceBox {
+      width: 100%;
+      background: white;
+      border-radius: 50rpx;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      margin: 20rpx auto;
+      padding-top: 30rpx;
+      padding-bottom: 30rpx;
+
+      .itemBox {
+        width: 33.33%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        margin-bottom: 20rpx;
+        position: relative;
+        .itemImg {
+          width: 60%;
+        }
+        .itembtn {
+          width: 140rpx;
+          height: 140rpx;
+          position: absolute;
+        }
+        .itemText {
+          height: 70rpx;
+          font-family: 'Microsoft YaHei';
+          font-size: 28rpx;
+        }
+      }
+    }
+  }
+}
+
+</style>
+<template>
+  <scroll-view class="list" scroll-y enable-back-to-top scroll-with-animation>
+    <repeat for="{{services}}" key="index" index="index" item="list">
+      <view class="title" wx:if="{{list.data.length!=0}}">{{list.data[0].group_name}}</view>
+      <view class="serviceBox" wx:if="{{list.data.length!=0}}">
+        <repeat for="{{list.data}}" key="index" index='index' item='item'>
+          <view class="itemBox">
+            <image mode="widthFix" src="{{item.icon}}" class="itemImg" />
+            <button class="itembtn" open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="toServiceDetail" style="opacity:0;" data-info="{{item}}"></button>
+            <view class="itemText flex">{{item.label}}</view>
+          </view>
+        </repeat>
+      </view>
+      <view class="line" wx:if="{{list.data.length!=0}}"></view>
+    </repeat>
+  </scroll-view>
+</template>
+<script>
+import wepy from 'wepy'
+export default class ListItem extends wepy.component {
+
+  components = {
+
+  }
+  data = {
+    uaid: String,
+    services: []
+  }
+  props = {
+
+  }
+  methods = {
+    toServiceDetail(e) {
+      let that = this;
+      if (!this.$parent.$parent.globalData.user) {
+
+        this.$parent.$parent.globalData.user = e.detail.userInfo;
+        this.methods.login(that, e);
+      } else {
+        if (e.currentTarget.dataset.info.behavior == 0) {
+          wx.showToast({
+            title: "服务维护中",
+            icon: "none"
+          });
+        } else {
+          wx.navigateTo({
+            url: './serviceDetail?category=' + e.currentTarget.dataset.info.category + '&title=' + e.currentTarget.dataset.info.label
+          })
+
+        }
+      }
+
+    },
+    login(that, e) {
+      wx.login({
+        success: res => {
+          if (res.code) {
+            wepy.request({
+              url: `${that.$parent.$parent.globalData.server_url}/login`,
+              data: {
+                code: res.code,
+                nickname: e.detail.userInfo.nickName,
+                avatar: e.detail.userInfo.avatarUrl,
+                uaid: that.$parent.$parent.globalData.uaid,
+                key: that.$parent.$parent.globalData.util.getKey(),
+                channel: 'dev'
+              },
+              header: { "Content-Type": "application/x-www-form-urlencoded" },
+              method: 'POST',
+              success: res => {
+                console.log(res)
+                if (res.data.user) {
+                  that.$parent.$parent.globalData.userInfo = res.data.user;
+                  that.$parent.$parent.globalData.islogin = true;
+                  that.$apply();
+                  if (e.currentTarget.dataset.info.behavior == 0) {
+                    wx.showToast({
+                      title: "服务维护中",
+                      icon: "none"
+                    });
+                  } else {
+                    wx.navigateTo({
+                      url: './serviceDetail?category=' + e.currentTarget.dataset.info.category + '&title=' + e.currentTarget.dataset.info.label
+                    })
+
+                  }
+
+                  that.$parent.$parent.globalData.sensors.login(res.data.user.id);
+                  that.$parent.$parent.globalData.sensors.init();
+                  that.$parent.$parent.globalData.sensors.track('WxLogin', {});
+                }
+              }
+            });
+          }
+        }
+      });
+    }
+  }
+
+  onLoad() {
+    this.uaid = this.$parent.uaid;
+    let that = this;
+    wepy.request({
+      url: `${that.$parent.$parent.globalData.server_url}/service_category`,
+      data: {
+        uaid: that.$parent.$parent.globalData.uaid,
+        key: that.$parent.$parent.globalData.util.getKey(),
+      },
+      header: { "Content-Type": "application/x-www-form-urlencoded" },
+      method: 'POST',
+      success: res => {
+        console.log(res);
+        if (res.data) {
+          that.services = res.data;
+          this.$apply();
+        }
+      }
+    });
+
+  }
+}
+
+</script>

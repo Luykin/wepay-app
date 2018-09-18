@@ -1,0 +1,13 @@
+{
+  "description": "快粉丝助手",
+  "setting": {
+    "urlCheck": true,
+    "es6": false,
+    "postcss": false,
+    "minified": false
+  },
+  "compileType": "miniprogram",
+  "appid": "wxf1b5907e3011fc20",
+  "projectname": "31009",
+  "miniprogramRoot": "./dist"
+}
