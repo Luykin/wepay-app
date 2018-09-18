@@ -1,3 +1,368 @@
+<template>
+  <view>
+    <view class="container" wx:if="{{!showType}}">
+      <view class="index">
+        <view class="topImageBox">
+          <view class="meInfo">
+            <image wx:if="{{!user.avatarUrl}}" src="../assets/index/login.png" class="headImage" />
+            <image wx:else src="{{user.avatarUrl}}" class="headImage" />
+            <button open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="onGotUserInfo" class="headImageBtn"></button>
+            <view class="userName" wx:if="{{!user.nickName}}">未登录，请点击头像登录</view>
+            <view class="userName" wx:else>{{user.nickName}}</view>
+          </view>
+          <button class="numberCatch" wx:if="{{user.nickName&&canIclick}}" @tap='catchNum'>幸运数字摇一摇</button>
+          <view class="numResult" wx:if="{{user.nickName&&!canIclick}}">{{number}}</view>
+        </view>
+      </view>
+    </view>
+    <view class="container" wx:else>
+      <view class="list">
+        <!--         <view class="listItem">
+          <image src="../assets/user/add.png" class="leftIconTop" />
+          <text class="middle">
+            我的粉币：
+            <div class="scoreNum">{{score?score:'0'}}</div>
+          </text>
+          <text class="rightIcon buyScoreBtn" @tap='toBuyScore'>购买粉币</text>
+        </view> -->
+        <div class="listItem">
+          <image src="../assets/user/add.png" class="leftIconTop" />
+          <text class="middle">我的粉币: {{score ? score : '0'}}</text>
+          <text @tap='toBuyScore' class="rightIcon rightText">购买粉币</text>
+        </div>
+        <view class="listItem">
+          <button class="listItemBtn" open-type="share" wx:if="{{userInfo.id}}"></button>
+          <image src="../assets/user/share.png" class="leftIcon" />
+          <text class="middle">分享好友赚粉币</text>
+          <text class="rightIcon rightText">{{userInfo.id?'+200':'未登录'}}</text>
+        </view>
+        <view class="listItem" @tap="showRemind">
+          <image src="../assets/user/remind.png" class="leftIcon" />
+          <text class="middle">添加到桌面</text>
+        </view>
+        <view class="listItem" @tap='toCustomerService'>
+          <image src="../assets/user/service.png" class="leftIcon" />
+          <text class="middle">联系客服</text>
+        </view>
+        <!-- <view class="listItem "  @tap='about' ><image src="../assets/user/i-complained.png" class="leftIcon"/><text class="middle">关于我们</text></view> -->
+        <view class="listItem " @tap='toRefund'>
+          <image src="../assets/user/refund.png" class="leftIcon" />
+          <text class="middle">我要退款</text>
+        </view>
+      </view>
+      <view class="medel">
+        <view class="me-info-hader-warp">
+          <image src="{{userInfo.avatar?userInfo.avatar:'../assets/index/login.png'}}" class="me-info-img" />
+          <button open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="onGotUserInfo" class="me-info-btn"></button>
+        </view>
+        <view class="username">{{userInfo.nickname?userInfo.nickname:'未登录'}}</view>
+        <view class="userid">{{userInfo.id?'ID:'+userInfo.id:'请点击头像登录'}}</view>
+        <view class="line"></view>
+        <view class="actBox">
+          <view class="act-item-warp flex">
+            <image src="../assets/user/red.png" @tap='toRed' />
+            <view class="act-item-text flex">红人榜</view>
+          </view>
+          <view class="act-item-warp flex">
+            <image src="../assets/user/order-record.png" @tap='toScoreRecord' />
+            <view class="act-item-text flex">粉币记录</view>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="remind" wx:if="{{showRemind}}">
+      <image src="../assets/user/arrow.png" mode="widthFix" />
+      <view>点击右上角</view>
+      <view>选择"添加到桌面"</view>
+      <view class="knowBtn" @tap="showRemind">我知道了</view>
+    </view>
+    <image src="../assets/index/course.png" class="course-image" @tap="toRead" wx:if="{{showType}}" />
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import notice from './utils/WxNotificationCenter'
+export default class Me extends wepy.page {
+  config = {
+    "navigationBarTitleText": "个人中心",
+    "navigationBarBackgroundColor": "#F04F43",
+    "navigationBarTextStyle": "white",
+    "disableScroll": true
+  }
+  components = {
+
+  }
+  data = {
+    user: {},
+    number: 0,
+    canIclick: true,
+    showType: true,
+    userInfo: {},
+    loginState: false,
+    showRemind: false,
+    score: 0
+  }
+
+  computed = {
+
+  }
+
+  methods = {
+    catchNum() {
+      let num = Math.random();
+      this.number = Math.floor(num * 9 + 1);
+      this.canIclick = false;
+    },
+
+    toMy() {
+      wx.switchTab({
+        url: 'look'
+      })
+    },
+    toRed() {
+      wx.navigateTo({
+        url: 'red'
+      })
+    },
+    toReturn() {
+      wx.navigateTo({
+        url: 'return'
+      })
+    },
+    toFans() {
+      wx.navigateTo({
+        url: 'fans'
+      })
+      this.$parent.globalData.sensors.track('WxFans', {});
+    },
+    toRead() {
+      wx.navigateTo({
+        url: 'detail?src=http://ozp5yj4ke.bkt.clouddn.com/30001_bd.png'
+      })
+    },
+    clear() {
+      wx.showToast({
+        title: '清除成功',
+        icon: 'none',
+        duration: 2000
+      })
+    },
+    toScoreRecord() {
+      if (this.$parent.globalData.userInfo) {
+        wx.navigateTo({
+          url: 'record'
+        })
+        this.$parent.globalData.sensors.track('WxScoreRecord', {});
+      } else {
+        wx.showToast({
+          title: '未登录',
+          image: "../assets/icon/warn.png",
+          icon: 'none',
+          duration: 2000,
+          mask: true
+        })
+      }
+    },
+    toRefund() {
+      if (this.$parent.globalData.userInfo) {
+        wx.navigateTo({
+          url: 'refund'
+        })
+        this.$parent.globalData.sensors.track('WxRefund', {});
+      } else {
+        wx.showToast({
+          title: '未登录',
+          image: "../assets/icon/warn.png",
+          icon: 'none',
+          duration: 2000,
+          mask: true
+        })
+      }
+
+    },
+    toMyOrders() {
+      if (this.$parent.globalData.userInfo) {
+        wx.navigateTo({
+          url: 'myOrder'
+        });
+        this.$parent.globalData.sensors.track('WxMyOrder', {});
+      } else {
+        wx.showToast({
+          title: '未登录',
+          image: "../assets/icon/warn.png",
+          icon: 'none',
+          duration: 2000,
+          mask: true
+        })
+      }
+    },
+    toCustomerService() {
+      if (this.$parent.globalData.userInfo) {
+        wx.navigateTo({
+          url: 'customerService'
+        })
+        this.$parent.globalData.sensors.track('WxCustomerService', {});
+      } else {
+        wx.showToast({
+          title: '未登录',
+          image: "../assets/icon/warn.png",
+          icon: 'none',
+          duration: 2000,
+          mask: true
+        })
+      }
+    },
+    toBuyScore() {
+      const that = this;
+      if (this.$parent.globalData.userInfo) {
+        wx.navigateTo({
+          url: 'buyScore'
+        })
+        that.$parent.globalData.sensors.track('WxBuyScore', {});
+      } else {
+        wx.showToast({
+          title: '未登录',
+          image: "../assets/icon/warn.png",
+          icon: 'none',
+          duration: 2000,
+          mask: true
+        })
+      }
+
+    },
+    showRemind() {
+
+      this.showRemind = !this.showRemind;
+      this.$apply();
+    },
+    about() {
+      wx.navigateTo({
+        url: 'aboutus'
+      })
+    },
+    onGotUserInfo(e) {
+      if (this.loginState) {
+        return;
+      }
+      wx.showLoading({
+        title: '登录中'
+      });
+      this.user = e.detail.userInfo;
+      let that = this;
+      wx.login({
+        success: res => {
+          if (res.code) {
+            that.$parent.globalData.code = res.code;
+            wepy.request({
+              url: `${that.$parent.globalData.server_url}/login`,
+              data: {
+                code: res.code,
+                nickname: that.user.nickName,
+                avatar: that.user.avatarUrl,
+                uaid: that.$parent.globalData.uaid,
+                key: that.$parent.globalData.util.getKey(),
+                channel: 'wx'
+              },
+              header: { "Content-Type": "application/x-www-form-urlencoded" },
+              method: 'POST',
+              success: res => {
+                if (res.data.user) {
+                  that.$parent.globalData.userInfo = res.data.user;
+                  that.score = that.$parent.globalData.userInfo.score;
+                  that.userInfo = res.data.user;
+                  that.$apply();
+                  wx.hideLoading();
+                  wx.showToast({
+                    title: '登录成功',
+                    icon: 'success',
+                    duration: 2000,
+                    mask: true
+                  });
+                  that.$parent.globalData.sensors.login(res.data.user.id);
+                  that.$parent.globalData.sensors.init();
+                  that.$parent.globalData.sensors.track('WxLogin', {});
+
+                }
+              },
+              fail: res => {
+                console.log(res);
+              }
+            });
+          }
+        }
+      });
+      this.$parent.globalData.islogin = true;
+      this.loginState = this.$parent.globalData.islogin;
+      this.$apply();
+    },
+    updateUserInfo(that) {
+      var timer = setInterval(function() {
+        if (that.$parent.globalData.userInfo) {
+          that.userInfo = that.$parent.globalData.userInfo;
+          that.score = that.$parent.globalData.userInfo.score;
+          that.$apply();
+        }
+      }, 2000)
+    },
+    shareUserInfo(action, that) {
+      wepy.request({
+        url: `${that.$parent.globalData.server_url}/user_info`,
+        data: {
+          user_id: that.$parent.globalData.userInfo.id,
+          action,
+          key: that.$parent.globalData.util.getKey(),
+          market_position: that.$parent.globalData.marketPosition
+        },
+        method: 'POST',
+        header: { "Content-Type": "application/x-www-form-urlencoded" },
+        success: function(res) {
+          console.log(res);
+          if (action == 3 || action == 7) {
+            wx.showToast({
+              title: '已获得积分',
+              icon: 'success',
+              mask: true
+            })
+          }
+          that.$parent.globalData.userInfo.score = res.data.user.score
+
+          that.setData({
+            userInfo: that.$parent.globalData.userInfo
+          })
+        }
+      })
+    }
+  }
+  onLoad() {
+    this.$parent.globalData.sensors.track('Wxme', {});
+    this.userInfo = this.$parent.globalData.userInfo;
+    this.showType = this.$parent.globalData.showType;
+    this.loginState = this.$parent.globalData.islogin;
+    this.methods.updateUserInfo(this);
+    this.$apply();
+  }
+  onShow() {
+    // notice.emit('dsad')
+    this.userInfo = this.$parent.globalData.userInfo;
+    this.loginState = this.$parent.globalData.islogin;
+    this.methods.updateUserInfo(this);
+    this.$apply();
+  }
+  onShareAppMessage(res) {
+    const that = this;
+    return {
+      title: "欢迎使用",
+      path: 'pages/fans',
+      success: function(res) {
+        that.methods.shareUserInfo(3, that);
+      }
+    }
+
+
+  }
+}
+
+</script>
 <style lang="scss">
 page {
   height: 100%;
@@ -329,367 +694,3 @@ page {
 }
 
 </style>
-<template>
-  <view>
-    <view class="container" wx:if="{{!showType}}">
-      <view class="index">
-        <view class="topImageBox">
-          <view class="meInfo">
-            <image wx:if="{{!user.avatarUrl}}" src="../assets/index/login.png" class="headImage" />
-            <image wx:else src="{{user.avatarUrl}}" class="headImage" />
-            <button open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="onGotUserInfo" class="headImageBtn"></button>
-            <view class="userName" wx:if="{{!user.nickName}}">未登录，请点击头像登录</view>
-            <view class="userName" wx:else>{{user.nickName}}</view>
-          </view>
-          <button class="numberCatch" wx:if="{{user.nickName&&canIclick}}" @tap='catchNum'>幸运数字摇一摇</button>
-          <view class="numResult" wx:if="{{user.nickName&&!canIclick}}">{{number}}</view>
-        </view>
-      </view>
-    </view>
-    <view class="container" wx:else>
-      <view class="list">
-        <!--         <view class="listItem">
-          <image src="../assets/user/add.png" class="leftIconTop" />
-          <text class="middle">
-            我的粉币：
-            <div class="scoreNum">{{score?score:'0'}}</div>
-          </text>
-          <text class="rightIcon buyScoreBtn" @tap='toBuyScore'>购买粉币</text>
-        </view> -->
-        <div class="listItem">
-          <image src="../assets/user/add.png" class="leftIconTop" />
-          <text class="middle">我的粉币: {{score ? score : '0'}}</text>
-          <text @tap='toBuyScore' class="rightIcon rightText">购买粉币</text>
-        </div>
-        <view class="listItem">
-          <button class="listItemBtn" open-type="share" wx:if="{{userInfo.id}}"></button>
-          <image src="../assets/user/share.png" class="leftIcon" />
-          <text class="middle">分享好友赚粉币</text>
-          <text class="rightIcon rightText">{{userInfo.id?'+200':'未登录'}}</text>
-        </view>
-        <view class="listItem" @tap="showRemind">
-          <image src="../assets/user/remind.png" class="leftIcon" />
-          <text class="middle">添加到桌面</text>
-        </view>
-        <view class="listItem" @tap='toCustomerService'>
-          <image src="../assets/user/service.png" class="leftIcon" />
-          <text class="middle">联系客服</text>
-        </view>
-        <!-- <view class="listItem "  @tap='about' ><image src="../assets/user/i-complained.png" class="leftIcon"/><text class="middle">关于我们</text></view> -->
-        <view class="listItem " @tap='toRefund'>
-          <image src="../assets/user/refund.png" class="leftIcon" />
-          <text class="middle">我要退款</text>
-        </view>
-      </view>
-      <view class="medel">
-        <view class="me-info-hader-warp">
-          <image src="{{userInfo.avatar?userInfo.avatar:'../assets/index/login.png'}}" class="me-info-img" />
-          <button open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="onGotUserInfo" class="me-info-btn"></button>
-        </view>
-        <view class="username">{{userInfo.nickname?userInfo.nickname:'未登录'}}</view>
-        <view class="userid">{{userInfo.id?'ID:'+userInfo.id:'请点击头像登录'}}</view>
-        <view class="line"></view>
-        <view class="actBox">
-          <view class="act-item-warp flex">
-            <image src="../assets/user/red.png" @tap='toRed' />
-            <view class="act-item-text flex">红人榜</view>
-          </view>
-          <view class="act-item-warp flex">
-            <image src="../assets/user/order-record.png" @tap='toScoreRecord' />
-            <view class="act-item-text flex">粉币记录</view>
-          </view>
-        </view>
-      </view>
-    </view>
-    <view class="remind" wx:if="{{showRemind}}">
-      <image src="../assets/user/arrow.png" mode="widthFix" />
-      <view>点击右上角</view>
-      <view>选择"添加到桌面"</view>
-      <view class="knowBtn" @tap="showRemind">我知道了</view>
-    </view>
-    <image src="../assets/index/course.png" class="course-image" @tap="toRead" wx:if="{{showType}}" />
-  </view>
-</template>
-<script>
-import wepy from 'wepy'
-export default class Me extends wepy.page {
-  config = {
-    "navigationBarTitleText": "个人中心",
-    "navigationBarBackgroundColor": "#F04F43",
-    "navigationBarTextStyle": "white",
-    "disableScroll": true
-  }
-  components = {
-
-  }
-  data = {
-    user: {},
-    number: 0,
-    canIclick: true,
-    showType: true,
-    userInfo: {},
-    loginState: false,
-    showRemind: false,
-    score: 0
-  }
-
-  computed = {
-
-  }
-
-  methods = {
-    catchNum() {
-      let num = Math.random();
-      this.number = Math.floor(num * 9 + 1);
-      this.canIclick = false;
-    },
-
-    toMy() {
-      wx.switchTab({
-        url: 'look'
-      })
-    },
-    toRed() {
-      wx.navigateTo({
-        url: 'red'
-      })
-    },
-    toReturn() {
-      wx.navigateTo({
-        url: 'return'
-      })
-    },
-    toFans() {
-      wx.navigateTo({
-        url: 'fans'
-      })
-      this.$parent.globalData.sensors.track('WxFans', {});
-    },
-    toRead() {
-      wx.navigateTo({
-        url: 'detail?src=http://ozp5yj4ke.bkt.clouddn.com/30001_bd.png'
-      })
-    },
-    clear() {
-      wx.showToast({
-        title: '清除成功',
-        icon: 'none',
-        duration: 2000
-      })
-    },
-    toScoreRecord() {
-      if (this.$parent.globalData.userInfo) {
-        wx.navigateTo({
-          url: 'record'
-        })
-        this.$parent.globalData.sensors.track('WxScoreRecord', {});
-      } else {
-        wx.showToast({
-          title: '未登录',
-          image: "../assets/icon/warn.png",
-          icon: 'none',
-          duration: 2000,
-          mask: true
-        })
-      }
-    },
-    toRefund() {
-      if (this.$parent.globalData.userInfo) {
-        wx.navigateTo({
-          url: 'refund'
-        })
-        this.$parent.globalData.sensors.track('WxRefund', {});
-      } else {
-        wx.showToast({
-          title: '未登录',
-          image: "../assets/icon/warn.png",
-          icon: 'none',
-          duration: 2000,
-          mask: true
-        })
-      }
-
-    },
-    toMyOrders() {
-      if (this.$parent.globalData.userInfo) {
-        wx.navigateTo({
-          url: 'myOrder'
-        });
-        this.$parent.globalData.sensors.track('WxMyOrder', {});
-      } else {
-        wx.showToast({
-          title: '未登录',
-          image: "../assets/icon/warn.png",
-          icon: 'none',
-          duration: 2000,
-          mask: true
-        })
-      }
-    },
-    toCustomerService() {
-      if (this.$parent.globalData.userInfo) {
-        wx.navigateTo({
-          url: 'customerService'
-        })
-        this.$parent.globalData.sensors.track('WxCustomerService', {});
-      } else {
-        wx.showToast({
-          title: '未登录',
-          image: "../assets/icon/warn.png",
-          icon: 'none',
-          duration: 2000,
-          mask: true
-        })
-      }
-    },
-    toBuyScore() {
-      const that = this;
-      if (this.$parent.globalData.userInfo) {
-        wx.navigateTo({
-          url: 'buyScore'
-        })
-        that.$parent.globalData.sensors.track('WxBuyScore', {});
-      } else {
-        wx.showToast({
-          title: '未登录',
-          image: "../assets/icon/warn.png",
-          icon: 'none',
-          duration: 2000,
-          mask: true
-        })
-      }
-
-    },
-    showRemind() {
-
-      this.showRemind = !this.showRemind;
-      this.$apply();
-    },
-    about() {
-      wx.navigateTo({
-        url: 'aboutus'
-      })
-    },
-    onGotUserInfo(e) {
-      if (this.loginState) {
-        return;
-      }
-      wx.showLoading({
-        title: '登录中'
-      });
-      this.user = e.detail.userInfo;
-      let that = this;
-      wx.login({
-        success: res => {
-          if (res.code) {
-            that.$parent.globalData.code = res.code;
-            wepy.request({
-              url: `${that.$parent.globalData.server_url}/login`,
-              data: {
-                code: res.code,
-                nickname: that.user.nickName,
-                avatar: that.user.avatarUrl,
-                uaid: that.$parent.globalData.uaid,
-                key: that.$parent.globalData.util.getKey(),
-                channel: 'wx'
-              },
-              header: { "Content-Type": "application/x-www-form-urlencoded" },
-              method: 'POST',
-              success: res => {
-                if (res.data.user) {
-                  that.$parent.globalData.userInfo = res.data.user;
-                  that.score = that.$parent.globalData.userInfo.score;
-                  that.userInfo = res.data.user;
-                  that.$apply();
-                  wx.hideLoading();
-                  wx.showToast({
-                    title: '登录成功',
-                    icon: 'success',
-                    duration: 2000,
-                    mask: true
-                  });
-                  that.$parent.globalData.sensors.login(res.data.user.id);
-                  that.$parent.globalData.sensors.init();
-                  that.$parent.globalData.sensors.track('WxLogin', {});
-
-                }
-              },
-              fail: res => {
-                console.log(res);
-              }
-            });
-          }
-        }
-      });
-      this.$parent.globalData.islogin = true;
-      this.loginState = this.$parent.globalData.islogin;
-      this.$apply();
-    },
-    updateUserInfo(that) {
-      var timer = setInterval(function() {
-
-        if (that.$parent.globalData.userInfo) {
-          that.userInfo = that.$parent.globalData.userInfo;
-          that.score = that.$parent.globalData.userInfo.score;
-          that.$apply();
-        }
-      }, 2000)
-    },
-    shareUserInfo(action, that) {
-      wepy.request({
-        url: `${that.$parent.globalData.server_url}/user_info`,
-        data: {
-          user_id: that.$parent.globalData.userInfo.id,
-          action,
-          key: that.$parent.globalData.util.getKey(),
-          market_position: that.$parent.globalData.marketPosition
-        },
-        method: 'POST',
-        header: { "Content-Type": "application/x-www-form-urlencoded" },
-        success: function(res) {
-          console.log(res);
-          if (action == 3 || action == 7) {
-            wx.showToast({
-              title: '已获得积分',
-              icon: 'success',
-              mask: true
-            })
-          }
-          that.$parent.globalData.userInfo.score = res.data.user.score
-
-          that.setData({
-            userInfo: that.$parent.globalData.userInfo
-          })
-        }
-      })
-    }
-  }
-  onLoad() {
-    this.$parent.globalData.sensors.track('Wxme', {});
-    this.userInfo = this.$parent.globalData.userInfo;
-    this.showType = this.$parent.globalData.showType;
-    this.loginState = this.$parent.globalData.islogin;
-    this.methods.updateUserInfo(this);
-    this.$apply();
-  }
-  onShow() {
-    this.userInfo = this.$parent.globalData.userInfo;
-    this.loginState = this.$parent.globalData.islogin;
-    this.methods.updateUserInfo(this);
-    this.$apply();
-  }
-  onShareAppMessage(res) {
-    const that = this;
-    return {
-      title: "欢迎使用",
-      path: 'pages/fans',
-      success: function(res) {
-        that.methods.shareUserInfo(3, that);
-      }
-    }
-
-
-  }
-}
-
-</script>

@@ -1,3 +1,247 @@
+<template>
+ <view class="serviceBox">
+  <view class="serviceList">
+      <repeat for="{{service}}" index="index" key="index" item="item">
+          <view class="serviceItemBox {{chooseServiceId==index?'chooseBorder':''}}" @tap="chooseService" data-id="{{index}}" >
+              <view class="serviceName">{{item.point}}{{item.units}}</view>
+              <view class="servicePrice">{{item.score}}粉币</view>
+              <image src="../assets/details/choose.png" class="choosed " wx:if="{{chooseServiceId==index}}"/>
+          </view>
+      </repeat>
+  </view>
+  <view class="serviceInput">
+      <view class="inputBox">
+       <textarea placeholder="长按粘贴你的{{serviceType}}" placeholder-class="placeholder" class="textarea" value="{{textareaValue}}"  bindinput="getAreaText"></textarea>
+       <!-- <image src="../assets/icon/warn.png" class="clearBtn" @tap="clearTextareaValue"/> -->
+   </view>
+   <view class="teachBox" @tap="toTeach"><text class="teach">查看教程</text></view>
+</view>
+<view class="showInput">
+  <input  bindinput="bindKeyInput" placeholder="{{serviceType}}" placeholder-class="placeholderInput" class="input" disabled="true" value="{{inputValue}}"/>
+</view>
+<button class="submit" @tap="submit">确认提交</button>
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class marquee extends wepy.component {
+
+    components = {
+
+    }
+    data = {   
+        service:[],
+        chooseServiceId:-1,
+        textareaValue:'',
+        inputValue:'',
+        serviceType:"",
+        teachArray:[
+            'http://ozp5yj4ke.bkt.clouddn.com/30001_dy_url.png',//抖音
+            'http://ozp5yj4ke.bkt.clouddn.com/30001_ks_new.jpg',//快手作品20-23
+            'http://ozp5yj4ke.bkt.clouddn.com/30001_ks_dianliang.jpg',//快手24-25
+            'http://ozp5yj4ke.bkt.clouddn.com/30001_quan_new.jpg'//K歌
+            ]
+        }
+
+        methods = {
+            chooseService(e){
+                this.chooseServiceId=e.currentTarget.dataset.id;
+                this.$apply();
+            },
+            clearTextareaValue(){    
+                this.textareaValue='';
+                this.$apply();
+            },
+            getAreaText(e)
+            {
+                if(this.service[0].category>=24&&this.service[0].category<=25)
+                {
+                    this.inputValue=e.detail.value;
+                    return;
+                }
+                if(this.methods.check(e.detail.value)) 
+                {
+                   this.inputValue=e.detail.value;
+               }
+               else{
+                   this.inputValue="请正确输入";
+               }
+
+           },
+           check(str){
+            if(str.indexOf('https')!=-1||str.indexOf('http')!=-1)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        },
+        toTeach(){
+            const that=this;
+            if(that.$parent.category>=40&&that.$parent.category<50)
+            {
+                wx.navigateTo({
+                    url: './teach?url='+that.teachArray[0]
+                })
+            }
+            else if(that.$parent.category>=20&&that.$parent.category<=23)
+            {
+                wx.navigateTo({
+                    url: './teach?url='+that.teachArray[1]
+                })
+            }
+            else if(that.$parent.category>=24&&that.$parent.category<=25)
+            {
+                wx.navigateTo({
+                    url: './teach?url='+that.teachArray[2]
+                })
+            }
+            else if(that.$parent.category>=30&&that.$parent.category<40)
+            {
+                wx.navigateTo({
+                    url: './teach?url='+that.teachArray[3]
+                })
+            }
+            else if(that.$parent.category<10)
+            {
+                wx.showToast({
+                    title:'直接输入您的QQ号码就行啦~,记得打开QQ空间访问权限哦~',
+                    icon:'none'
+                })
+            }
+        },
+        submit(){
+            if(this.inputValue==""||this.inputValue=="请正确输入"||this.chooseServiceId==-1)
+            {
+                if(this.chooseServiceId==-1)
+                {
+                    wx.showToast({
+                        title:'请选择商品',
+                        icon:'none',
+                        image:'../assets/icon/warn.png'
+                    });
+                }
+                else{
+                    wx.showToast({
+                        title:'请正确输入',
+                        icon:'none',
+                        image:'../assets/icon/warn.png'
+                    });
+                }
+                return;
+            }
+            let that=this;
+            wx.showModal({
+                title: '确认信息',
+                cancelText:'取消',
+                cancelColor:'gray',
+                content: that.inputValue,
+                confirmText:'确定',
+                confirmColor:'#5e6dfc',
+                success: function(res) {
+                    if (res.confirm) {
+                        console.log('用户点击确定')
+                        if(that.$parent.$parent.globalData.userInfo.score>=that.service[that.chooseServiceId].score)
+                        {
+                         wx.showLoading({
+                            title: '加载中',
+                        });
+                         wepy.request({
+                            url:`${that.$parent.$parent.globalData.server_url}/add_kami_task`,
+                            data:{
+                                service_id:that.service[that.chooseServiceId].id,
+                                addition:that.inputValue,
+                                uaid:that.$parent.$parent.globalData.uaid,
+                                key:that.$parent.$parent.globalData.util.getKey(),
+                                channel:'wx',
+                                user_id:that.$parent.$parent.globalData.userInfo.id,
+                                platform:101
+
+                            },
+                            header: { "Content-Type": "application/x-www-form-urlencoded" },
+                            method: 'POST',
+                            success:res=>{
+                             if(res.data.task_info[0].id)
+                             {
+                                console.log("添加卡盟任务成功");
+                                that.$parent.$parent.globalData.userInfo.score-=that.service[that.chooseServiceId].score;
+                                that.$parent.score-=that.service[that.chooseServiceId].score;
+                                that.$parent.$apply();
+                                wx.hideLoading();
+                                wx.showToast({
+                                    title:'提交成功',
+                                    icon:'success', 
+                                });
+                                that.$parent.$parent.globalData.sensors.track('WxAddKami',{});
+                            }
+                            else{
+                             wx.showToast({
+                                title:'提交失败',
+                                icon:'none', 
+                                image:'../assets/icon/warn.png'
+                            });
+                         }
+                     }
+                 });
+                     }
+                     else{
+                        wx.showModal({
+                            title: '粉币不足',
+                            cancelText:'不了',
+                            cancelColor:'gray',
+                            content: '是否前往充值？',
+                            confirmText:'前往',
+                            confirmColor:'#5e6dfc',
+                            success: function(res) {
+                                if (res.confirm) {
+                                    console.log('用户点击确定')
+                                    wx.navigateTo({
+                                        url: './buyScore'
+                                    })
+                                    that.$parent.$parent.globalData.sensors.track('WxBuyScore',{});
+                                } else if (res.cancel) {
+                                    console.log('用户点击取消')
+                                }
+                            }
+                        })
+                    }
+                } else if (res.cancel) {
+                    console.log('用户点击取消')
+                }
+            }
+        })
+            
+        }
+
+    }
+    onLoad() {
+      let that=this;
+      that.serviceType=that.$parent.serviceType;
+      wepy.request({
+          url:`${that.$parent.$parent.globalData.server_url}/services`,
+          data:{
+            category:that.$parent.category,
+            uaid:that.$parent.$parent.globalData.uaid,
+            key:that.$parent.$parent.globalData.util.getKey(),
+
+        },
+        header: { "Content-Type": "application/x-www-form-urlencoded" },
+        method: 'POST',
+        success:res=>{
+            if(res.data)
+            {
+               that.service=res.data;
+               console.log(that.service);
+               this.$apply();
+           }
+       }
+   });
+  }
+}
+</script>
 <style lang="scss">
 page{
     width: 100%;
@@ -46,328 +290,83 @@ page{
             
         }
         .chooseBorder{
-             border: 1rpx solid #ff7752;
-             
-        }
-        .serviceItemBox:nth-of-type(2)
-        {
-            margin-left: 20rpx;
-            margin-right:20rpx;
-        }
-    }
-    .serviceInput{
-        display: flex;
-        .inputBox{
-            width: 70%;
-            height: 180rpx;
-            background: #f6f6f6;  
-            border-radius: 15rpx;
-            margin-right: 30rpx;
-            position: relative;
-            .placeholder{
-                background:#f6f6f6;
-                color:rgb(100, 100, 100);      
-            }
-            .textarea{
-                color: rgb(100, 100, 100);
-                font-size: 28rpx;
-                margin:3%;
-                width: 94%;
-                height: 94%;
-            }
-            .clearBtn{
-                position: absolute;
-                width: 50rpx;
-                height: 50rpx;
-                bottom: 3rpx;
-                right: 3rpx;
-                z-index: 5;
-            }
-        }
-        .teachBox{
-            box-sizing: border-box;
-            width: 30%;
-            height: 180rpx;
-            border: 5rpx solid #ffa028;
-            border-radius: 20rpx;
-            text-align: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            .teach{
-                color: #ffa028;
-            }
-        }
-    }
-    .showInput{
-        width: 100%;
-        height:50rpx;
-        background: #f6f6f6;
-        .input{
-            width: 94%;
-            margin:3%;
-            height: 94%;
-            color: rgb(100, 100, 100);
-            font-size: 28rpx;
-        }
-        .placeholderInput{
-            text-align: center;
-        }
-    }
-    .submit{
-        width: 100%;
-        height: 100rpx;
-        background: #F04F43;
-        color: white;
-        font-weight: 900;
-        text-align: center;
-        border-radius: 50rpx;
-        margin-top: 50rpx;
+         border: 1rpx solid #ff7752;
+
+     }
+     .serviceItemBox:nth-of-type(2)
+     {
+        margin-left: 20rpx;
+        margin-right:20rpx;
     }
 }
-</style>
-<template>
-     <view class="serviceBox">
-          <view class="serviceList">
-              <repeat for="{{service}}" index="index" key="index" item="item">
-                  <view class="serviceItemBox {{chooseServiceId==index?'chooseBorder':''}}" @tap="chooseService" data-id="{{index}}" >
-                      <view class="serviceName">{{item.point}}{{item.units}}</view>
-                      <view class="servicePrice">{{item.score}}粉币</view>
-                      <image src="../assets/details/choose.png" class="choosed " wx:if="{{chooseServiceId==index}}"/>
-                  </view>
-              </repeat>
-          </view>
-          <view class="serviceInput">
-              <view class="inputBox">
-                   <textarea placeholder="长按粘贴你的{{serviceType}}" placeholder-class="placeholder" class="textarea" value="{{textareaValue}}"  bindinput="getAreaText"></textarea>
-                   <!-- <image src="../assets/icon/warn.png" class="clearBtn" @tap="clearTextareaValue"/> -->
-              </view>
-              <view class="teachBox" @tap="toTeach"><text class="teach">查看教程</text></view>
-          </view>
-          <view class="showInput">
-              <input  bindinput="bindKeyInput" placeholder="{{serviceType}}" placeholder-class="placeholderInput" class="input" disabled="true" value="{{inputValue}}"/>
-          </view>
-          <button class="submit" @tap="submit">确认提交</button>
-      </view>
-</template>
-
-<script>
-  import wepy from 'wepy'
-  export default class marquee extends wepy.component {
-
-    components = {
-
-    }
-    data = {   
-        service:[],
-        chooseServiceId:-1,
-        textareaValue:'',
-        inputValue:'',
-        serviceType:"",
-        teachArray:[
-            'http://ozp5yj4ke.bkt.clouddn.com/30001_dy_url.png',//抖音
-            'http://ozp5yj4ke.bkt.clouddn.com/30001_ks_new.jpg',//快手作品20-23
-            'http://ozp5yj4ke.bkt.clouddn.com/30001_ks_dianliang.jpg',//快手24-25
-            'http://ozp5yj4ke.bkt.clouddn.com/30001_quan_new.jpg'//K歌
-            ]
-    }
-
-    methods = {
-        chooseService(e){
-            this.chooseServiceId=e.currentTarget.dataset.id;
-            this.$apply();
-        },
-        clearTextareaValue(){    
-            this.textareaValue='';
-            this.$apply();
-        },
-        getAreaText(e)
-        {
-            if(this.service[0].category>=24&&this.service[0].category<=25)
-            {
-                this.inputValue=e.detail.value;
-                return;
-            }
-           if(this.methods.check(e.detail.value)) 
-           {
-               this.inputValue=e.detail.value;
-           }
-           else{
-               this.inputValue="请正确输入";
-           }
-            
-        },
-        check(str){
-            if(str.indexOf('https')!=-1||str.indexOf('http')!=-1)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        },
-        toTeach(){
-            const that=this;
-             if(that.$parent.category>=40&&that.$parent.category<50)
-            {
-                wx.navigateTo({
-                            url: './teach?url='+that.teachArray[0]
-                            })
-            }
-            else if(that.$parent.category>=20&&that.$parent.category<=23)
-            {
-                wx.navigateTo({
-                            url: './teach?url='+that.teachArray[1]
-                            })
-            }
-            else if(that.$parent.category>=24&&that.$parent.category<=25)
-            {
-                wx.navigateTo({
-                            url: './teach?url='+that.teachArray[2]
-                            })
-            }
-            else if(that.$parent.category>=30&&that.$parent.category<40)
-            {
-                wx.navigateTo({
-                            url: './teach?url='+that.teachArray[3]
-                            })
-            }
-			 else if(that.$parent.category<10)
-            {
-                wx.showToast({
-                    title:'直接输入您的QQ号码就行啦~,记得打开QQ空间访问权限哦~',
-                    icon:'none'
-                })
-            }
-        },
-        submit(){
-            if(this.inputValue==""||this.inputValue=="请正确输入"||this.chooseServiceId==-1)
-            {
-                if(this.chooseServiceId==-1)
-                {
-                    wx.showToast({
-                    title:'请选择商品',
-                    icon:'none',
-                    image:'../assets/icon/warn.png'
-                    });
-                }
-                else{
-                    wx.showToast({
-                    title:'请正确输入',
-                    icon:'none',
-                    image:'../assets/icon/warn.png'
-                    });
-                }
-                return;
-            }
-            let that=this;
-            wx.showModal({
-                    title: '确认信息',
-                    cancelText:'取消',
-                    cancelColor:'gray',
-                    content: that.inputValue,
-                    confirmText:'确定',
-                    confirmColor:'#5e6dfc',
-                    success: function(res) {
-                    if (res.confirm) {
-                        console.log('用户点击确定')
-                         if(that.$parent.$parent.globalData.userInfo.score>=that.service[that.chooseServiceId].score)
-                         {
-                             wx.showLoading({
-                                title: '加载中',
-                                });
-                             wepy.request({
-                            url:`${that.$parent.$parent.globalData.server_url}/add_kami_task`,
-                            data:{
-                            service_id:that.service[that.chooseServiceId].id,
-                            addition:that.inputValue,
-                            uaid:that.$parent.$parent.globalData.uaid,
-                            key:that.$parent.$parent.globalData.util.getKey(),
-                            channel:'wx',
-                            user_id:that.$parent.$parent.globalData.userInfo.id,
-                            platform:101
-                    
-                            },
-                            header: { "Content-Type": "application/x-www-form-urlencoded" },
-                             method: 'POST',
-                            success:res=>{
-                             if(res.data.task_info[0].id)
-                                {
-                                console.log("添加卡盟任务成功");
-                                that.$parent.$parent.globalData.userInfo.score-=that.service[that.chooseServiceId].score;
-                                that.$parent.score-=that.service[that.chooseServiceId].score;
-                                that.$parent.$apply();
-                                    wx.hideLoading();
-                                wx.showToast({
-                                    title:'提交成功',
-                                    icon:'success', 
-                                });
-                                that.$parent.$parent.globalData.sensors.track('WxAddKami',{});
-                                }
-                            else{
-                                 wx.showToast({
-                                    title:'提交失败',
-                                    icon:'none', 
-                                    image:'../assets/icon/warn.png'
-                                });
-                                }
-                        }
-                        });
-            }
-            else{
-                wx.showModal({
-                    title: '粉币不足',
-                    cancelText:'不了',
-                    cancelColor:'gray',
-                    content: '是否前往充值？',
-                    confirmText:'前往',
-                    confirmColor:'#5e6dfc',
-                    success: function(res) {
-                    if (res.confirm) {
-                        console.log('用户点击确定')
-                         wx.navigateTo({
-                            url: './buyScore'
-                            })
-                         that.$parent.$parent.globalData.sensors.track('WxBuyScore',{});
-                    } else if (res.cancel) {
-                        console.log('用户点击取消')
-                    }
-                     }
-                    })
-            }
-                    } else if (res.cancel) {
-                        console.log('用户点击取消')
-                    }
-                     }
-                    })
-            
+.serviceInput{
+    display: flex;
+    .inputBox{
+        width: 70%;
+        height: 180rpx;
+        background: #f6f6f6;  
+        border-radius: 15rpx;
+        margin-right: 30rpx;
+        position: relative;
+        .placeholder{
+            background:#f6f6f6;
+            color:rgb(100, 100, 100);      
         }
-
+        .textarea{
+            color: rgb(100, 100, 100);
+            font-size: 28rpx;
+            margin:3%;
+            width: 94%;
+            height: 94%;
+        }
+        .clearBtn{
+            position: absolute;
+            width: 50rpx;
+            height: 50rpx;
+            bottom: 3rpx;
+            right: 3rpx;
+            z-index: 5;
+        }
     }
-    onLoad() {
-      
-      let that=this;
-      that.serviceType=that.$parent.serviceType;
-       wepy.request({
-                  url:`${that.$parent.$parent.globalData.server_url}/services`,
-                  data:{
-                    category:that.$parent.category,
-                    uaid:that.$parent.$parent.globalData.uaid,
-                    key:that.$parent.$parent.globalData.util.getKey(),
-                    
-                  },
-                  header: { "Content-Type": "application/x-www-form-urlencoded" },
-                  method: 'POST',
-                  success:res=>{
-                    if(res.data)
-                    {
-                       that.service=res.data;
-                       console.log(that.service);
-                       this.$apply();
-                    }
-                  }
-                });
-     }
-  }
-</script>
+    .teachBox{
+        box-sizing: border-box;
+        width: 30%;
+        height: 180rpx;
+        border: 2rpx solid #ffa028;
+        border-radius: 20rpx;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        .teach{
+            color: #ffa028;
+        }
+    }
+}
+.showInput{
+    width: 100%;
+    height:50rpx;
+    background: #f6f6f6;
+    .input{
+        width: 94%;
+        margin:3%;
+        height: 94%;
+        color: rgb(100, 100, 100);
+        font-size: 28rpx;
+    }
+    .placeholderInput{
+        text-align: center;
+    }
+}
+.submit{
+    width: 100%;
+    height: 100rpx;
+    background: #F04F43;
+    color: white;
+    font-weight: 900;
+    text-align: center;
+    border-radius: 50rpx;
+    margin-top: 50rpx;
+}
+}
+</style>

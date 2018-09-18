@@ -1,30 +1,75 @@
-<style lang="scss">
-page {
-  background: #f6f6f6;
-}
-
-.container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  box-sizing: border-box;
-}
-
-</style>
-<style src="./assets/css/reset.css">
-
-
-</style>
 <script>
-import wepy from 'wepy';
-import 'wepy-async-function';
-import util from "./pages/utils/util";
-import sensors from './pages/utils/sensorsdata.min';
-export default class extends wepy.app {
-  config = {
-    "pages": [
+  import 'wepy-async-function';
+  import wepy from 'wepy';
+  import util from "./pages/utils/util";
+  import { getConfig } from './api/index'
+  import sensors from './pages/utils/sensorsdata.min';
+  import notice from './pages/utils/WxNotificationCenter'
+  export default class extends wepy.app {
+    constructor() {
+      super()
+      this.use('requestfix');
+    }
+
+    globalData = {
+      uaid: 30009,
+      payment_id: 5,
+      statusCode: 200,
+      appName: '快粉丝助手',
+      version: '2.1.4',
+      code: "",
+      util: util,
+      islogin: null,
+      userInfo: null,
+      showType: null,
+      jumpAppId: null,
+      sensors: sensors,
+      userInfoNeedUpdata: null,
+      marketPosition: 'WX',
+      keys: "has_reviewed_30009",
+      server_url: 'https://dev.melonblock.com/wechat',
+    }
+    async _getConfig(that) {
+      try {
+        const ret = await getConfig(that.globalData.uaid, that.globalData.keys)
+        const value = JSON.parse(ret.data[0].value)
+        if (value.version == that.globalData.version && value.code == 1) {
+          that.globalData.showType = true;
+          wx.setNavigationBarTitle({
+            title: that.globalData.appName
+          })
+          wx.setTabBarItem({
+            index: 0,
+            text: '圈粉',
+            iconPath: "assets/index/icon1-unselected.png",
+            selectedIconPath: "assets/index/icon1-active.png"
+          })
+        } else {
+          notice.emit('config', null)
+        }
+      } catch(err) {
+        notice.emit('config', null)
+        console.log(err)
+      }
+    }
+    methods = {
+    }
+    onLaunch() {
+      const that = this;
+      that.globalData.sensors.registerApp({
+        platform: 'WX',
+        appName: that.globalData.appName,
+        uniqueApplicationId: that.globalData.uaid,
+        systemSeries: 'T'
+      })
+    }
+    onShow() {
+      console.log()
+      this._getConfig(this)
+      console.log(this)
+    }
+    config = {
+      "pages": [
       'pages/fans',
       'pages/me',
       'pages/detail',
@@ -38,18 +83,17 @@ export default class extends wepy.app {
       'pages/myOrder',
       'pages/teach',
       'pages/refund'
-
-    ],
-    "window": {
-      "backgroundTextStyle": 'light',
-      "navigationBarTitleText": '快粉丝助手',
-      "navigationBarTextStyle": 'white'
-    },
-    "tabBar": {
-      "color": "#000",
-      "selectedColor": "#000",
-      "backgroundColor": "#ffffff",
-      "list": [{
+      ],
+      "window": {
+        "backgroundTextStyle": 'light',
+        "navigationBarTitleText": '快粉丝助手',
+        "navigationBarTextStyle": 'white'
+      },
+      "tabBar": {
+        "color": "#000",
+        "selectedColor": "#000",
+        "backgroundColor": "#ffffff",
+        "list": [{
           "pagePath": "pages/fans",
           "text": "快粉丝助手",
           "iconPath": "assets/index/icon1-unselected.png",
@@ -67,79 +111,26 @@ export default class extends wepy.app {
           "iconPath": "assets/index/icon2-unselected.png",
           "selectedIconPath": "assets/index/icon2-active.png"
         }
-      ]
+        ]
+      }
     }
   }
 
-  globalData = {
-    userInfo: null,
-    uaid: 30009,
-    server_url: 'https://dev.melonblock.com/wechat',
-    version: '2.1.4',
-    util: util,
-    marketPosition: 'WX',
-    payment_id: 5,
-    showType: false,
-    keys: "has_reviewed_30009",
-    userInfoNeedUpdata: false,
-    code: "",
-    islogin: false,
-    sensors: sensors,
-    jumpAppId: false
-  }
-
-  constructor() {
-    super()
-    // this.use('promisify');
-    this.use('requestfix');
-  }
-  onLaunch() {
-    const that = this;
-    that.globalData.sensors.registerApp({
-      platform: 'WX',
-      appName: '趣玩助手',
-      uniqueApplicationId: 30009,
-      systemSeries: 'T'
-    })
-    wx.onNetworkStatusChange(function(res) {
-      if (!res.isConnected) {
-        wx.showToast({
-          title: '请检查网络',
-          image: '../assets/icon/warn.png',
-          mask: true,
-          duration: 2500
-        })
-      }
-    });
-    wepy.request({
-      url: `${that.globalData.server_url}/config`,
-      data: {
-        uaid: that.globalData.uaid,
-        sign: that.globalData.util.getSign({
-          uaid: that.globalData.uaid
-        }),
-      },
-      header: { "Content-Type": "application/x-www-form-urlencoded" },
-      method: 'POST',
-      success: res => {
-        console.log(res);
-        if (res.data.length > 0) {
-          var obj = JSON.parse(res.data[0].value);
-          console.log(obj)
-          if (res.data[0].key == that.globalData.keys && obj.version == that.globalData.version && obj.code == 1) {
-            console.log("隐藏");
-            that.globalData.showType = true;
-          }
-          if (obj.appid) {
-            that.globalData.jumpAppId = obj.appid;
-          }
-        }
-      }
-    });
-  }
-  onShow() {
-
-  }
+</script>
+<style lang="scss">
+page {
+  background: #f6f6f6;
 }
 
-</script>
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+</style>
+<style src="./assets/css/reset.css">
+</style>

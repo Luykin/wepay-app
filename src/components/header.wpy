@@ -132,178 +132,187 @@ page {
   </view>
 </template>
 <script>
-import wepy from 'wepy'
-export default class header extends wepy.component {
+  import wepy from 'wepy'
+  export default class header extends wepy.component {
 
-  components = {
+    components = {
 
-  }
-  data = {
-    nickname: "请点击头像登录",
-    id: "请登录",
-    score: 0,
-    userInfo: {},
-    loginState: false
-  }
+    }
+    data = {
+      nickname: "请点击头像登录",
+      id: "请登录",
+      score: 0,
+      userInfo: {},
+      loginState: false
+    }
 
-  methods = {
-    _dosome(event) {
-      console.log(event)
-    },
-    toBuyScore() {
-      const that = this;
-      if (this.$parent.$parent.globalData.userInfo) {
-        wx.navigateTo({
-          url: 'buyScore'
-        })
-        that.$parent.$parent.globalData.sensors.track('WxBuyScore', {});
-      } else {
-        wx.showToast({
-          title: '未登录',
-          image: "../assets/icon/warn.png",
-          icon: 'none',
-          duration: 2000,
-          mask: true
-        })
-      }
-
-    },
-    sign() {
-      let that = this;
-      if (!this.$parent.$parent.globalData.userInfo && !this.$parent.$parent.globalData.islogin) {
-        wx.showToast({
-          title: '未登录',
-          image: "../assets/icon/warn.png",
-          duration: 2000,
-          mask: true
-        })
-      } else if (this.$parent.$parent.globalData.userInfo.nickname && this.$parent.$parent.globalData.islogin) {
-        if (this.$parent.$parent.globalData.islogin == -1) {
+    methods = {
+      _dosome(event) {
+        console.log(event)
+      },
+      toBuyScore() {
+        const that = this;
+        if (this.$parent.$parent.globalData.userInfo) {
+          wx.navigateTo({
+            url: 'buyScore'
+          })
+          that.$parent.$parent.globalData.sensors.track('WxBuyScore', {});
+        } else {
           wx.showToast({
-            title: '已经签过啦~',
+            title: '未登录',
+            image: "../assets/icon/warn.png",
+            icon: 'none',
+            duration: 2000,
+            mask: true
+          })
+        }
+
+      },
+      sign() {
+        let that = this;
+        if (!this.$parent.$parent.globalData.userInfo && !this.$parent.$parent.globalData.islogin) {
+          wx.showToast({
+            title: '未登录',
             image: "../assets/icon/warn.png",
             duration: 2000,
             mask: true
           })
-          return;
-        } else {
-          this.$parent.$parent.globalData.islogin = -1;
-          wepy.request({
-            url: `${that.$parent.$parent.globalData.server_url}/sign`,
-            data: {
-              user_id: that.$parent.$parent.globalData.userInfo.id,
-              key: that.$parent.$parent.globalData.util.getKey(),
-
-            },
-            header: { "Content-Type": "application/x-www-form-urlencoded" },
-            method: 'POST',
-            success: res => {
-              if (res.data.user) {
-                that.$parent.$parent.globalData.userInfo.score = res.data.user.score;
-                that.userInfo = that.$parent.$parent.globalData.userInfo;
-                that.score = res.data.user.score;
-                that.$apply();
-                that.methods.updateUserInfo(that);
-                wx.showToast({
-                  title: '签到成功',
-                  icon: 'success',
-                  duration: 2000,
-                  mask: true
-                });
-                that.$parent.$parent.globalData.sensors.track('WxSign', {});
-              } else {
-                wx.showToast({
-                  title: "已经签过啦~",
-                  image: "../assets/icon/warn.png",
-                  duration: 2000,
-                  mask: true
-                });
-              }
-            }
-          });
-
-        }
-
-      }
-
-    },
-    updateUserInfo(that) {
-      var timer = setInterval(function() {
-
-        if (that.$parent.$parent.globalData.userInfo) {
-          that.userInfo = that.$parent.$parent.globalData.userInfo;
-          that.score = that.$parent.$parent.globalData.userInfo.score;
-          that.$apply();
-        }
-      }, 2000)
-    },
-    onGotUserInfo(e) {
-      this.loginState = this.$parent.$parent.globalData.islogin;
-      if (this.loginState) {
-        return;
-      }
-      wx.showLoading({
-        title: '登录中'
-      });
-      this.user = e.detail.userInfo;
-      let that = this;
-      wx.login({
-        success: res => {
-          if (res.code) {
-            that.$parent.$parent.globalData.code = res.code;
+        } else if (this.$parent.$parent.globalData.userInfo.nickname && this.$parent.$parent.globalData.islogin) {
+          if (this.$parent.$parent.globalData.islogin == -1) {
+            wx.showToast({
+              title: '已经签过啦~',
+              image: "../assets/icon/warn.png",
+              duration: 2000,
+              mask: true
+            })
+            return;
+          } else {
+            this.$parent.$parent.globalData.islogin = -1;
             wepy.request({
-              url: `${that.$parent.$parent.globalData.server_url}/login`,
+              url: `${that.$parent.$parent.globalData.server_url}/sign`,
               data: {
-                code: res.code,
-                nickname: that.user.nickName,
-                avatar: that.user.avatarUrl,
-                uaid: that.$parent.$parent.globalData.uaid,
+                user_id: that.$parent.$parent.globalData.userInfo.id,
                 key: that.$parent.$parent.globalData.util.getKey(),
-                channel: 'wx'
+
               },
               header: { "Content-Type": "application/x-www-form-urlencoded" },
               method: 'POST',
               success: res => {
                 if (res.data.user) {
-                  that.$parent.$parent.globalData.userInfo = res.data.user;
+                  that.$parent.$parent.globalData.userInfo.score = res.data.user.score;
                   that.userInfo = that.$parent.$parent.globalData.userInfo;
-                  that.score = that.$parent.$parent.globalData.userInfo.score;
+                  that.score = res.data.user.score;
                   that.$apply();
-                  wx.hideLoading();
+                  that.methods.updateUserInfo(that);
                   wx.showToast({
-                    title: '登录成功',
+                    title: '签到成功',
                     icon: 'success',
                     duration: 2000,
                     mask: true
                   });
-                  that.$parent.$parent.globalData.sensors.login(res.data.user.id);
-                  that.$parent.$parent.globalData.sensors.init();
-                  that.$parent.$parent.globalData.sensors.track('WxLogin', {});
-
+                  that.$parent.$parent.globalData.sensors.track('WxSign', {});
+                } else {
+                  wx.showToast({
+                    title: "已经签过啦~",
+                    image: "../assets/icon/warn.png",
+                    duration: 2000,
+                    mask: true
+                  });
                 }
-              },
-              fail: res => {
-                console.log(res);
               }
             });
+
+          }
+
+        }
+
+      },
+      updateUserInfo(that) {
+        var timer = setInterval(function() {
+
+          if (that.$parent.$parent.globalData.userInfo) {
+            that.userInfo = that.$parent.$parent.globalData.userInfo;
+            that.score = that.$parent.$parent.globalData.userInfo.score;
+            that.$apply();
+          }
+        }, 2000)
+      },
+      onGotUserInfo(e) {
+        this.loginState = this.$parent.$parent.globalData.islogin;
+        if (this.loginState) {
+          return;
+        }
+        wx.showLoading({
+          title: '登录中'
+        });
+        if (!(e.userInfo || e.detail.userInfo)) {
+          return false;
+        }
+        this.user = e.userInfo || e.detail.userInfo;
+        let that = this;
+        wx.login({
+          success: res => {
+            if (res.code) {
+              that.$parent.$parent.globalData.code = res.code;
+              wepy.request({
+                url: `${that.$parent.$parent.globalData.server_url}/login`,
+                data: {
+                  code: res.code,
+                  nickname: that.user.nickName,
+                  avatar: that.user.avatarUrl,
+                  uaid: that.$parent.$parent.globalData.uaid,
+                  key: that.$parent.$parent.globalData.util.getKey(),
+                  channel: 'wx'
+                },
+                header: { "Content-Type": "application/x-www-form-urlencoded" },
+                method: 'POST',
+                success: res => {
+                  if (res.data.user) {
+                    that.$parent.$parent.globalData.userInfo = res.data.user;
+                    that.userInfo = that.$parent.$parent.globalData.userInfo;
+                    that.score = that.$parent.$parent.globalData.userInfo.score;
+                    that.$apply();
+                    wx.hideLoading();
+                    that.$parent.$parent.globalData.sensors.login(res.data.user.id);
+                    that.$parent.$parent.globalData.sensors.init();
+                    that.$parent.$parent.globalData.sensors.track('WxLogin', {});
+
+                  }
+                },
+                fail: res => {
+                  console.log(res);
+                }
+              });
+            }
+          }
+        });
+        this.$parent.$parent.globalData.islogin = true;
+        this.loginState = this.$parent.$parent.globalData.islogin;
+        this.$apply();
+      },
+    }
+    _autoLogin() {
+      // console.log(this)
+      const that = this
+      wx.getUserInfo({
+        complete: res => {
+          if (res.userInfo) {
+            this.methods.onGotUserInfo.call(that, res)
           }
         }
-      });
-      this.$parent.$parent.globalData.islogin = true;
-      this.loginState = this.$parent.$parent.globalData.islogin;
+      })
+    }
+    onLoad() {
+      this._autoLogin()
+      this.userInfo = this.$parent.$parent.globalData.userInfo;
+      this.methods.updateUserInfo(this);
       this.$apply();
-    },
+    }
+    onShow() {
+      this.userInfo = this.$parent.$parent.globalData.userInfo;
+      this.methods.updateUserInfo(this);
+      this.$apply();
+    }
   }
-  onLoad() {
-    this.userInfo = this.$parent.$parent.globalData.userInfo;
-    this.methods.updateUserInfo(this);
-    this.$apply();
-  }
-  onShow() {
-    this.userInfo = this.$parent.$parent.globalData.userInfo;
-    this.methods.updateUserInfo(this);
-    this.$apply();
-  }
-}
 
 </script>

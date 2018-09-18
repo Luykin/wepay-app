@@ -1,3 +1,59 @@
+<template>
+  <view class="container">
+    <header class="header" wx:if="{{showType}}"></header>
+    <marquee class="marquee" wx:if="{{showType}}"></marquee>
+    <listitem wx:if="{{showType}}"></listitem>
+    <navigator target="miniProgram" open-type="navigate" app-id="{{jumpAppId}}" path="" extra-data="" version="release" wx:if="{{showType}}">
+      <image src="../assets/index/biglogo.png" class="floatTip" wx:if="{{jumpAppId}}" />
+    </navigator>
+    <skin wx:if="{{!showType}}"></skin>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import header from '../components/header'
+  import marquee from '../components/marquee'
+  import listitem from '../components/listitem'
+  import skin from '../components/skin'
+  import notice from './utils/WxNotificationCenter'
+  export default class fans extends wepy.page {
+    config = {
+      "navigationBarTitleText": "快粉丝助手",
+      "navigationBarBackgroundColor": "#F04F43",
+      "navigationBarTextStyle": "white",
+      "disableScroll": true
+    }
+    components = {
+      header: header,
+      marquee: marquee,
+      listitem: listitem,
+      skin: skin
+    }
+    data = {
+      jumpAppId: "",
+      showType: true
+    }
+    props = {
+
+    }
+    computed = {
+
+    }
+
+    methods = {
+    }
+    onLoad() {
+      notice.on("config", (data)=> {
+        if (!data) {
+          this.showType = null
+          this.$apply();
+        }
+      },this)
+      // this.methods._getConfig(this)
+    }
+  }
+
+</script>
 <style lang="scss">
 page {
   height: 100%;
@@ -41,96 +97,3 @@ page {
 }
 
 </style>
-<template>
-  <view class="container">
-    <header class="header" wx:if="{{showType}}"></header>
-    <marquee class="marquee" wx:if="{{showType}}"></marquee>
-    <listitem wx:if="{{showType}}"></listitem>
-    <navigator target="miniProgram" open-type="navigate" app-id="{{jumpAppId}}" path="" extra-data="" version="release" wx:if="{{showType}}">
-      <image src="../assets/index/biglogo.png" class="floatTip" wx:if="{{jumpAppId}}" />
-    </navigator>
-    <skin wx:if="{{!showType}}"></skin>
-  </view>
-</template>
-<script>
-import wepy from 'wepy'
-import header from '../components/header'
-import marquee from '../components/marquee'
-import listitem from '../components/listitem'
-import skin from '../components/skin'
-import { getConfig } from '../api/api'
-
-export default class fans extends wepy.page {
-  config = {
-    "navigationBarTitleText": "快粉丝助手",
-    "navigationBarBackgroundColor": "#F04F43",
-    "navigationBarTextStyle": "white",
-    "disableScroll": true
-  }
-  components = {
-    header: header,
-    marquee: marquee,
-    listitem: listitem,
-    skin: skin
-  }
-  data = {
-    jumpAppId: "",
-    showType: false
-  }
-  props = {
-
-  }
-  computed = {
-
-  }
-
-  methods = {
-
-  }
-  onLoad() {
-    const that = this
-    getConfig(30009).then((res) => {
-      console.log(res)
-    })
-  //   wepy.request({
-  //     url: `${that.$parent.globalData.server_url}/config`,
-  //     data: {
-  //       uaid: that.$parent.globalData.uaid,
-  //       sign: that.$parent.globalData.util.getSign({
-  //         uaid: that.$parent.globalData.uaid
-  //       }),
-  //     },
-  //     header: { "Content-Type": "application/x-www-form-urlencoded" },
-  //     method: 'POST',
-  //     success: res => {
-  //       console.log(res);
-  //       if (res.data.length > 0) {
-  //         try {
-  //           var obj = JSON.parse(res.data[0].value);
-  //           if (obj.appid) {
-  //             that.jumpAppId = obj.appid;
-  //             that.$apply();
-  //           }
-  //         } catch (err) {
-  //           console.log(err)
-  //         }
-  //         if (res.data[0].key == that.$parent.globalData.keys && obj.version == that.$parent.globalData.version && obj.code == 1) {
-  //           that.showType = true;
-  //           wx.setNavigationBarTitle({
-  //             title: '快粉丝助手'
-  //           })
-  //           wx.setTabBarItem({
-  //             index: 0,
-  //             text: '圈粉',
-  //             iconPath: "assets/index/icon1-unselected.png",
-  //             selectedIconPath: "assets/index/icon1-active.png"
-  //           })
-  //           that.$apply();
-  //         }
-  //       }
-  //     }
-  //   });
-  // }
-}
-
-</script>
