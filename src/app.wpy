@@ -2,7 +2,7 @@
   import 'wepy-async-function';
   import wepy from 'wepy';
   import util from "./pages/utils/util";
-  import { getConfig } from './api/index'
+  import { getConfig, userAction } from './api/index'
   import sensors from './pages/utils/sensorsdata.min';
   import notice from './pages/utils/WxNotificationCenter'
   export default class extends wepy.app {
@@ -13,7 +13,7 @@
 
     globalData = {
       uaid: 30009,
-      payment_id: 5,
+      payment_id: 4,
       statusCode: 200,
       appName: '快粉丝助手',
       version: '2.1.4',
@@ -52,9 +52,27 @@
         console.log(err)
       }
     }
+    async _userAction() {
+      try {
+        if (!this.globalData.userInfo) {
+          return false;
+        }
+        const user_id = this.globalData.userInfo.id
+        const ret = await userAction(this.globalData.uaid, user_id)
+        if (ret.data.user) {
+          this.globalData.userInfo = ret.data.user;
+          notice.emit('finishUpdateUser', ret.data.user);
+        }
+      } catch(err){
+        console.log(err)
+      }
+    }
     methods = {
     }
     onLaunch() {
+      notice.on('startUpdateUser', () => {
+        this._userAction.call(this)
+      }, this)
       const that = this;
       that.globalData.sensors.registerApp({
         platform: 'WX',
@@ -64,9 +82,8 @@
       })
     }
     onShow() {
-      console.log()
+      notice.emit('startUpdateUser')
       this._getConfig(this)
-      console.log(this)
     }
     config = {
       "pages": [
@@ -95,7 +112,7 @@
         "backgroundColor": "#ffffff",
         "list": [{
           "pagePath": "pages/fans",
-          "text": "快粉丝助手",
+          "text": "圈粉",
           "iconPath": "assets/index/icon1-unselected.png",
           "selectedIconPath": "assets/index/icon1-active.png"
         },

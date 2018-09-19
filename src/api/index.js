@@ -1,9 +1,9 @@
 import qs from 'qs'
 import { getSign } from '../pages/utils/util'
-import {axios, server_url, options} from './apiConfig'
+import {axios, apiOptions, options} from './apiConfig'
 // 在线参数
 export function getConfig(uaid, key) {
-  const url = `${server_url}/config`
+  const url = `${apiOptions.server_url}/config`
   let data = {
     uaid: uaid,
     k: key
@@ -18,12 +18,17 @@ export function getConfig(uaid, key) {
   })
 }
 // 用户行为，签到等。
-export function userAction(uaid, action, market_position) {
-  const url = `${server_url}/user_info`
+export function userAction(uaid, user_id, action) {
+  const url = `${apiOptions.server_url}/user_info`
   let data = {
     uaid: uaid,
-    action: action,
-    market_position: market_position
+    user_id: user_id,
+    market_position: apiOptions.market_position
+  }
+  if (action) {
+    Object.assign(data, {
+      action
+    })
   }
   return axios.post(url,Object.assign({ sign: getSign(data) }, data), options)
   .then((res) => {

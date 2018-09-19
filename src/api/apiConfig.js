@@ -4,7 +4,10 @@ import wepyAxiosAdapter from 'wepy-plugin-axios/dist/adapter'
 const adapter = wepyAxiosAdapter(axios)
 axios.defaults.adapter = adapter
 
-const server_url = 'https://dev.melonblock.com/wechat'
+const apiOptions = {
+	marketPosition: 'WX',
+	server_url: 'https://dev.melonblock.com/wechat'
+}
 const options = {
 	headers: {
 		'content-type': 'application/x-www-form-urlencoded'
@@ -12,6 +15,6 @@ const options = {
 }
 module.exports = {
 	axios,
-	server_url,
+	apiOptions,
 	options
 }

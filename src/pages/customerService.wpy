@@ -1,70 +1,81 @@
-<style lang="scss">
-page{
-    height: 100%;
-    width: 100%;
-    .container{
-        height: 100%;
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        .getBtn{
-            width: 80%;
-            height: 100rpx;
-            background: #161d42;
-            color: white;
-            font-weight: 900;
-            text-align: center;
-            border-radius: 50rpx;
-            margin-top: 50rpx;
-        }
-        .img{
-            width: 300rpx;
-            height: 300rpx;
-            margin-top: 20rpx;
-            text-align: center;
-            transition: 1s ;
-        }
-        .hide{
-            opacity: 0;
-        }
-        .show{
-            opacity: 1;;
-        }
-  }
-}
-  
-</style>
 <template>
   <view class="container">
-       <button type="primary" size="40" session-from="nickName={{userInfo.nickname}}#{{userInfo.id}}|avatarUrl={{userInfo.avatar}}" open-type="contact">联系客服</button>
+    <web-view src="{{webviewurl}}" wx:if="{{webviewurl}}"></web-view>
   </view>
 </template>
 <script>
-  import wepy from 'wepy'
-  export default class customerService extends wepy.page {
-    config = {
-      navigationBarTitleText: '联系客服',
-      navigationBarBackgroundColor: '#F04F43'
-    }
-    components = {
+import wepy from 'wepy'
+import notice from './utils/WxNotificationCenter'
+const globalData = wepy.$instance.globalData
 
-    }
-    data = {
-        userInfo:{}
-    }
-    computed = {
-    
-    }
-
-    methods = {
-    }
-    onLoad() {
-        const that=this;
-        that.userInfo=that.$parent.globalData.userInfo;
-        that.$apply();
-        console.log(that.userInfo);
-     }
+export default class customerService extends wepy.page {
+  config = {
+    navigationBarTitleText: '联系客服',
+    navigationBarBackgroundColor: '#F04F43'
   }
+  components = {
+
+  }
+  data = {
+    userInfo: null,
+    webviewurl: null
+  }
+  // https://qiyu.xingkwh.com/#/
+  computed = {
+
+  }
+  methods = {
+
+  }
+  onLoad() {
+    this.userInfo = globalData.userInfo;
+    this.webviewurl = encodeURI(`https://qiyu.xingkwh.com/#/?userid=${this.userInfo.id}&name=${this.userInfo.nickname}&uaid=${globalData.uaid}&score=${this.userInfo.score}&appName=${globalData.appName}&avatar=${this.userInfo.avatar}`)
+    console.log(this.webviewurl)
+    notice.on('finishUpdateUser', (data) => {
+      this.userInfo = data
+      this.$apply();
+    }, this)
+    this.$apply();
+  }
+}
+
 </script>
+<style lang="scss">
+page {
+  height: 100%;
+  width: 100%;
+  .container {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    .getBtn {
+      width: 80%;
+      height: 100rpx;
+      background: #161d42;
+      color: white;
+      font-weight: 900;
+      text-align: center;
+      border-radius: 50rpx;
+      margin-top: 50rpx;
+    }
+    .img {
+      width: 300rpx;
+      height: 300rpx;
+      margin-top: 20rpx;
+      text-align: center;
+      transition: 1s;
+    }
+    .hide {
+      opacity: 0;
+    }
+    .show {
+      opacity: 1;
+      ;
+    }
+  }
+}
+
+</style>

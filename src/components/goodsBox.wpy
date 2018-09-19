@@ -1,252 +1,235 @@
-<style lang="scss">
-page{
- width: 100%;
- height: 100%;
- overflow: hidden;
- .Gcontainer{
-   width: 100%;
-   height: 100%;
-   background: white;
-   margin: 10rpx auto 0rpx;
-
-   .myScore{
-    width: 100%;
-    height: 140rpx;
-    background: white;
-    margin-bottom: 10rpx;
-    border-bottom: 3rpx solid #f6f6f6;
-    .scoretext{
-      width: 100%;
-      text-align: center;
-      font-size: 28rpx;
-    }
-    .score{
-      width: 100%;
-      font-size:40rpx;
-      font-weight: 900;
-      color: #ffa028;
-      text-align: center;
-      margin-bottom: 10rpx;
-      margin-top: 10rpx;
-    }
-    
-  }
-  .title{
-   width: 96%;
-   height: 50rpx;
-   padding: 0% 3%;
-   line-height: 50rpx;
-   display: flex;
-   flex-direction: row;
-   justify-content: flex-start;
-   .point{
-     width: 8rpx;
-     height: 25rpx;
-     background: #ffa028;
-     margin-top: 15rpx;
-   }
-   .titleText{
-     font-size: 28rpx;
-     margin-left: 10rpx;
-   }
- } 
- .goodsList{
-  width: 96%;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  border-radius: 20rpx;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 0% 3%;
-  .goodsItem{
-    height: 150rpx;
-    width: 28%;
-    margin: 15rpx;
-    border: 2rpx solid #f6f6f6;
-    border-radius: 10rpx;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    text-align: center;
-    position: relative;
-    box-sizing: border-box;
-    .choose{
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 40rpx;
-      height: 40rpx;
-    }
-    .itemLabel{
-      font-size: 32rpx;
-      color:#ffa028;
-    }
-    .itemPrice{
-      font-size: 28rpx;
-      font-family: 'Microsoft YaHei';
-    }
-  }
-  .chooseBorder{
-    border: 1rpx solid #ff7752;
-  }
-}
-.submit{
-  width: 80%;
-  height: 100rpx;
-  background: #F04F43;
-  color: white;
-  font-weight: 900;
-  text-align: center;
-  border-radius: 50rpx;
-  margin-top: 50rpx;
-  margin: 50rpx 10%;
-}
-}
-
-}
-</style>
 <template>
   <view class="Gcontainer">
     <view class="myScore">
       <view class="scoretext">当前粉币余额</view>
-      <view class="score">{{score}}</view>
+      <view class="score" wx:if="{{userInfo}}">{{userInfo.score}}</view>
     </view>
     <view class="title">
-     <view class="point"></view>
-     <text class="titleText">充值粉币</text>
-   </view>
-   <view class="goodsList">
-    <repeat for="{{goodsList}}" index="index" key="index" item="item">
-      <view class="goodsItem {{chooseId==index?'chooseBorder':''}}" @tap="choose" data-id="{{index}}" data-info="{{item}}">
-        <image src="../assets/details/choose.png" class="choose"  wx:if="{{chooseId==index}}"/>
-        <view class="itemLabel">{{item.label}}</view>
-        <view class="itemPrice">￥{{item.price}}</view>
-      </view>
-    </repeat>
+      <view class="point"></view>
+      <text class="titleText">充值粉币</text>
+    </view>
+    <view class="goodsList">
+      <repeat for="{{goodsList}}" index="index" key="index" item="item">
+        <view class="goodsItem {{chooseId==index?'chooseBorder':''}}" @tap="choose" data-id="{{index}}" data-info="{{item}}">
+          <image src="../assets/details/choose.png" class="choose" wx:if="{{chooseId==index}}" />
+          <view class="itemLabel">{{item.label}}</view>
+          <view class="itemPrice">￥{{item.price}}</view>
+        </view>
+      </repeat>
+    </view>
+    <button class="submit" @tap="pay">微信支付</button>
   </view>
-  <button class="submit" @tap="pay">微信支付</button>
-</view> 
-
 </template>
-
 <script>
 import wepy from 'wepy'
+import notice from '../pages/utils/WxNotificationCenter'
+const globalData = wepy.$instance.globalData
 export default class goodsBox extends wepy.component {
 
   components = {
 
   }
   data = {
-    goodsList:[],
-    chooseId:-1,
-    chooseGoods:false,
-    score:0
+    goodsList: [],
+    chooseId: -1,
+    chooseGoods: false,
+    score: 0,
+    userInfo: null
   }
 
   methods = {
-   getGoodsList(that){
-     wepy.request({
-      url:`${that.$parent.$parent.globalData.server_url}/goods`,
-      data:{
-        uaid:that.$parent.$parent.globalData.uaid,
-        key:that.$parent.$parent.globalData.util.getKey()    
-      },
-      header: { "Content-Type": "application/x-www-form-urlencoded" },
-      method: 'POST',
-      success:res=>{                   
-       
-        that.goodsList=res.data;
-        that.$apply();
-        console.log(that.goodsList)
-      }
-    });
-   },
-   choose(e){
-    console.log(e.currentTarget.dataset.info);
-    this.chooseId=e.currentTarget.dataset.id;
-    this.chooseGoods=e.currentTarget.dataset.info;
-    this.$apply();
-  },
-  pay(){
-    let that=this;
-    if(!that.chooseGoods)
-    {
-      wx.showToast({
-       title: '未选择商品',
-       icon: 'none',
-       image:'../assets/icon/warn.png',
-       duration: 2000
-     })
-    }
-    else
-    {
+    getGoodsList(that) {
       wepy.request({
-        url:`${that.$parent.$parent.globalData.server_url}/add_order`,
-        data:{
-          
-          uaid:that.$parent.$parent.globalData.uaid,
-          user_id:that.$parent.$parent.globalData.userInfo.id,
-          good_id:that.chooseGoods.id,
-          payment_id:that.$parent.$parent.globalData.payment_id,
-          key:that.$parent.$parent.globalData.util.getKey(),
-          platform:101
+        url: `${that.$parent.$parent.globalData.server_url}/goods`,
+        data: {
+          uaid: that.$parent.$parent.globalData.uaid,
+          key: that.$parent.$parent.globalData.util.getKey()
         },
         header: { "Content-Type": "application/x-www-form-urlencoded" },
         method: 'POST',
-        success:res=>{ 
-          console.log(res);
-          wx.requestPayment({
-            'timeStamp': res.data.data.timeStamp,
-            'nonceStr': res.data.data.nonceStr,
-            'package': res.data.data.package,
-            'signType':  res.data.data.signType,
-            'paySign':  res.data.data.paySign,
-            'success':function(res){
-              wx.showToast({
-                title:'支付成功',
-                mask:true
-              });
-              that.$parent.$parent.globalData.sensors.track('WxPaySucc',{});
-              wepy.request({
-                url:`${that.$parent.$parent.globalData.server_url}/user_info`,
-                data:{          
-                 user_id:that.$parent.$parent.globalData.userInfo.id,
-                 key:that.$parent.$parent.globalData.util.getKey(),
-                 action:3
-               },
-               header: { "Content-Type": "application/x-www-form-urlencoded" },
-               method: 'POST',
-               success:res=>{
-                if(res.data)
-                {
-                 console.log(res.data)
-                 that.$parent.$parent.globalData.userInfo=res.data.user;
-                 that.score=res.data.user.score;
-                 that.$apply();
-               }
-             } 
-           });
-            },
-            'fail':function(res){
-              wx.showToast({
-                title:'支付失败',
-                image:'../assets/icon/warn.png',
-                mask:true
-              });
-              that.$parent.$parent.globalData.sensors.track('WxPayFail',{});
-            }
-          })
+        success: res => {
+
+          that.goodsList = res.data;
+          that.$apply();
+          // console.log(that.goodsList)
         }
       });
+    },
+    choose(e) {
+      console.log(e.currentTarget.dataset.info);
+      this.chooseId = e.currentTarget.dataset.id;
+      this.chooseGoods = e.currentTarget.dataset.info;
+      this.$apply();
+    },
+    pay() {
+      let that = this;
+      if (!that.chooseGoods) {
+        wx.showToast({
+          title: '未选择商品',
+          icon: 'none',
+          image: '../assets/icon/warn.png',
+          duration: 2000
+        })
+      } else {
+        wepy.request({
+          url: `${that.$parent.$parent.globalData.server_url}/add_order`,
+          data: {
+            uaid: that.$parent.$parent.globalData.uaid,
+            user_id: that.$parent.$parent.globalData.userInfo.id,
+            good_id: that.chooseGoods.id,
+            payment_id: that.$parent.$parent.globalData.payment_id,
+            key: that.$parent.$parent.globalData.util.getKey(),
+            platform: 101
+          },
+          header: { "Content-Type": "application/x-www-form-urlencoded" },
+          method: 'POST',
+          success: res => {
+            console.log(res);
+            wx.requestPayment({
+              'timeStamp': res.data.data.timeStamp,
+              'nonceStr': res.data.data.nonceStr,
+              'package': res.data.data.package,
+              'signType': res.data.data.signType,
+              'paySign': res.data.data.paySign,
+              'success': function(res) {
+                wx.showToast({
+                  title: '支付成功',
+                  mask: true
+                });
+                that.$parent.$parent.globalData.sensors.track('WxPaySucc', {});
+                notice.emit('startUpdateUser')
+              },
+              'fail': function(res) {
+                wx.showToast({
+                  title: '支付失败',
+                  image: '../assets/icon/warn.png',
+                  mask: true
+                });
+                that.$parent.$parent.globalData.sensors.track('WxPayFail', {});
+              }
+            })
+          }
+        });
+      }
+
     }
-    
+  }
+  onLoad() {
+    this.methods.getGoodsList(this);
+    notice.on('finishUpdateUser', (data) => {
+      this.userInfo = data
+      this.$apply();
+    }, this)
+    this.userInfo = globalData.userInfo
   }
 }
-onLoad() {
-  this.methods.getGoodsList(this);
-  this.score=this.$parent.$parent.globalData.userInfo.score;
-}
-}
+
 </script>
+<style lang="scss">
+page {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  .Gcontainer {
+    width: 100%;
+    height: 100%;
+    background: white;
+    margin: 10rpx auto 0rpx;
+
+    .myScore {
+      width: 100%;
+      height: 140rpx;
+      background: white;
+      margin-bottom: 10rpx;
+      border-bottom: 3rpx solid #f6f6f6;
+      .scoretext {
+        width: 100%;
+        text-align: center;
+        font-size: 28rpx;
+      }
+      .score {
+        width: 100%;
+        font-size: 40rpx;
+        font-weight: 900;
+        color: #ffa028;
+        text-align: center;
+        margin-bottom: 10rpx;
+        margin-top: 10rpx;
+      }
+    }
+    .title {
+      width: 96%;
+      height: 50rpx;
+      padding: 0% 3%;
+      line-height: 50rpx;
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      .point {
+        width: 8rpx;
+        height: 25rpx;
+        background: #ffa028;
+        margin-top: 15rpx;
+      }
+      .titleText {
+        font-size: 28rpx;
+        margin-left: 10rpx;
+      }
+    }
+    .goodsList {
+      width: 96%;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      border-radius: 20rpx;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 0% 3%;
+      .goodsItem {
+        height: 150rpx;
+        width: 28%;
+        margin: 15rpx;
+        border: 2rpx solid #f6f6f6;
+        border-radius: 10rpx;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        text-align: center;
+        position: relative;
+        box-sizing: border-box;
+        .choose {
+          position: absolute;
+          top: 0;
+          right: 0;
+          width: 40rpx;
+          height: 40rpx;
+        }
+        .itemLabel {
+          font-size: 32rpx;
+          color: #ffa028;
+        }
+        .itemPrice {
+          font-size: 28rpx;
+          font-family: 'Microsoft YaHei';
+        }
+      }
+      .chooseBorder {
+        border: 1rpx solid #ff7752;
+      }
+    }
+    .submit {
+      width: 80%;
+      height: 100rpx;
+      background: #F04F43;
+      color: white;
+      font-weight: 900;
+      text-align: center;
+      border-radius: 50rpx;
+      margin-top: 50rpx;
+      margin: 50rpx 10%;
+    }
+  }
+}
+
+</style>

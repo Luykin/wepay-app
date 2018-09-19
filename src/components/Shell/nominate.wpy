@@ -1,0 +1,37 @@
+<template>
+  <image src="http://p70pqu6ys.bkt.clouddn.com/%E7%A9%BA%E9%97%B4%E5%88%B7%E8%B5%9E%E5%8D%A0%E4%BD%8Dbanner@3x.png" class="banner-img">
+</template>
+<script>
+import wepy from 'wepy'
+export default class skin extends wepy.component {
+  components = {}
+  data = {
+  }
+
+  methods = {
+  }
+  onLoad() {
+    // wx.setNavigationBarTitle({
+    //   title: '笑话'
+    // })
+    wx.setTabBarItem({
+      index: 0,
+      text: '推荐',
+      iconPath: "assets/index/icon1-unselected.png",
+      selectedIconPath: "assets/index/icon1-active.png"
+    })
+  }
+}
+
+</script>
+<style scoped>
+ page{
+   height: 100%;
+   display: flex;
+   justify-content: center;
+ }
+ .banner-img{
+  width: 100%;
+  height: 360rpx;
+ }
+</style>

@@ -27,7 +27,7 @@
         </view> -->
         <div class="listItem">
           <image src="../assets/user/add.png" class="leftIconTop" />
-          <text class="middle">我的粉币: {{score ? score : '0'}}</text>
+          <text class="middle">我的粉币: {{userInfo ? userInfo.score : '0'}}</text>
           <text @tap='toBuyScore' class="rightIcon rightText">购买粉币</text>
         </div>
         <view class="listItem">
@@ -82,6 +82,7 @@
 <script>
 import wepy from 'wepy'
 import notice from './utils/WxNotificationCenter'
+const globalData = wepy.$instance.globalData
 export default class Me extends wepy.page {
   config = {
     "navigationBarTitleText": "个人中心",
@@ -231,7 +232,6 @@ export default class Me extends wepy.page {
 
     },
     showRemind() {
-
       this.showRemind = !this.showRemind;
       this.$apply();
     },
@@ -259,17 +259,17 @@ export default class Me extends wepy.page {
                 code: res.code,
                 nickname: that.user.nickName,
                 avatar: that.user.avatarUrl,
-                uaid: that.$parent.globalData.uaid,
-                key: that.$parent.globalData.util.getKey(),
+                uaid: globalData.uaid,
+                key: globalData.util.getKey(),
                 channel: 'wx'
               },
               header: { "Content-Type": "application/x-www-form-urlencoded" },
               method: 'POST',
               success: res => {
                 if (res.data.user) {
-                  that.$parent.globalData.userInfo = res.data.user;
-                  that.score = that.$parent.globalData.userInfo.score;
-                  that.userInfo = res.data.user;
+                  globalData.userInfo = res.data.user;
+                  that.user = res.data.user;
+                  notice.emit('startUpdateUser')
                   that.$apply();
                   wx.hideLoading();
                   wx.showToast({
@@ -281,7 +281,6 @@ export default class Me extends wepy.page {
                   that.$parent.globalData.sensors.login(res.data.user.id);
                   that.$parent.globalData.sensors.init();
                   that.$parent.globalData.sensors.track('WxLogin', {});
-
                 }
               },
               fail: res => {
@@ -295,15 +294,6 @@ export default class Me extends wepy.page {
       this.loginState = this.$parent.globalData.islogin;
       this.$apply();
     },
-    updateUserInfo(that) {
-      var timer = setInterval(function() {
-        if (that.$parent.globalData.userInfo) {
-          that.userInfo = that.$parent.globalData.userInfo;
-          that.score = that.$parent.globalData.userInfo.score;
-          that.$apply();
-        }
-      }, 2000)
-    },
     shareUserInfo(action, that) {
       wepy.request({
         url: `${that.$parent.globalData.server_url}/user_info`,
@@ -316,7 +306,6 @@ export default class Me extends wepy.page {
         method: 'POST',
         header: { "Content-Type": "application/x-www-form-urlencoded" },
         success: function(res) {
-          console.log(res);
           if (action == 3 || action == 7) {
             wx.showToast({
               title: '已获得积分',
@@ -324,29 +313,24 @@ export default class Me extends wepy.page {
               mask: true
             })
           }
-          that.$parent.globalData.userInfo.score = res.data.user.score
-
-          that.setData({
-            userInfo: that.$parent.globalData.userInfo
-          })
+          notice.emit('startUpdateUser')
         }
       })
     }
   }
   onLoad() {
+    // notice.emit('startUpdateUser')
+    notice.on('finishUpdateUser', (data) => {
+      this.userInfo = data
+      this.$apply();
+    }, this)
     this.$parent.globalData.sensors.track('Wxme', {});
-    this.userInfo = this.$parent.globalData.userInfo;
-    this.showType = this.$parent.globalData.showType;
-    this.loginState = this.$parent.globalData.islogin;
-    this.methods.updateUserInfo(this);
+    this.userInfo = globalData.userInfo;
+    this.showType = globalData.showType;
+    this.loginState = globalData.islogin;
     this.$apply();
   }
   onShow() {
-    // notice.emit('dsad')
-    this.userInfo = this.$parent.globalData.userInfo;
-    this.loginState = this.$parent.globalData.islogin;
-    this.methods.updateUserInfo(this);
-    this.$apply();
   }
   onShareAppMessage(res) {
     const that = this;

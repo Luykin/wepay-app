@@ -14,7 +14,8 @@
   import header from '../components/header'
   import marquee from '../components/marquee'
   import listitem from '../components/listitem'
-  import skin from '../components/skin'
+  // import skin from '../components/skin'
+  import skin from '../components/Shell/nominate'
   import notice from './utils/WxNotificationCenter'
   export default class fans extends wepy.page {
     config = {
