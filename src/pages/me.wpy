@@ -4,14 +4,18 @@
       <view class="index">
         <view class="topImageBox">
           <view class="meInfo">
-            <image wx:if="{{!user.avatarUrl}}" src="../assets/index/login.png" class="headImage" />
-            <image wx:else src="{{user.avatarUrl}}" class="headImage" />
+            <image wx:if="{{!userInfo}}" src="../assets/index/login.png" class="headImage" />
+            <image wx:else src="{{userInfo.avatar}}" class="headImage" />
             <button open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="onGotUserInfo" class="headImageBtn"></button>
-            <view class="userName" wx:if="{{!user.nickName}}">未登录，请点击头像登录</view>
-            <view class="userName" wx:else>{{user.nickName}}</view>
+            <view class="userName" wx:if="{{!userInfo}}">未登录，请点击头像登录</view>
+            <view class="userName" wx:else>{{userInfo.nickname}}</view>
           </view>
-          <button class="numberCatch" wx:if="{{user.nickName&&canIclick}}" @tap='catchNum'>幸运数字摇一摇</button>
-          <view class="numResult" wx:if="{{user.nickName&&!canIclick}}">{{number}}</view>
+          <button class="numberCatch" wx:if="{{userInfo&&canIclick}}" @tap='catchNum'>幸运数字摇一摇</button>
+          <view class="numResult" wx:if="{{userInfo&&!canIclick}}">{{number}}</view>
+          <!--          <view class="listItem" @tap="showRemind">
+            <image src="../assets/user/remind.png" class="leftIcon" />
+            <text class="middle">添加到桌面</text>
+          </view> -->
         </view>
       </view>
     </view>
@@ -319,7 +323,10 @@ export default class Me extends wepy.page {
     }
   }
   onLoad() {
-    // notice.emit('startUpdateUser')
+    notice.on("config", (data) => {
+      this.showType = globalData.showType
+      this.$apply();
+    }, this)
     notice.on('finishUpdateUser', (data) => {
       this.userInfo = data
       this.$apply();
@@ -330,8 +337,7 @@ export default class Me extends wepy.page {
     this.loginState = globalData.islogin;
     this.$apply();
   }
-  onShow() {
-  }
+  onShow() {}
   onShareAppMessage(res) {
     const that = this;
     return {
@@ -653,6 +659,7 @@ page {
   font-size: 28rpx;
   height: 50rpx;
 }
+
 .course-image {
   position: fixed;
   bottom: 20rpx;

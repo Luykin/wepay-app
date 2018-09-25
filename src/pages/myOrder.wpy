@@ -58,7 +58,6 @@ export default class myOrder extends wepy.page {
         header: { "Content-Type": "application/x-www-form-urlencoded" },
         method: 'POST',
         success: res => {
-          console.log(res)
           that.orders = res.data;
           that.orders.forEach(element => {
             element.create = that.methods.timeChange(element.create);
@@ -79,7 +78,6 @@ export default class myOrder extends wepy.page {
             } else if (element.status == -8) {
               element.status = "订单无访问权限";
             }
-
           });
           if (that.orders.length == 0) {
             that.showEmpty = true;
@@ -87,6 +85,9 @@ export default class myOrder extends wepy.page {
             that.showEmpty = false;
           }
           that.$apply();
+        },
+        complete: res => {
+          wx.stopPullDownRefresh();
         }
       });
     },
@@ -103,6 +104,7 @@ export default class myOrder extends wepy.page {
   onLoad() {
     notice.on('finishUpdateUser', () => {
       this.methods.getOrders(this);
+      this.$apply();
     }, this)
     if (this.$parent.globalData.userInfo) {
       this.methods.getOrders(this);
@@ -113,16 +115,7 @@ export default class myOrder extends wepy.page {
   }
   onPullDownRefresh() {
     if (this.$parent.globalData.userInfo) {
-      // console.log("下拉刷新");
       this.methods.getOrders(this);
-      setTimeout(function() {
-        wx.stopPullDownRefresh();
-        wx.showToast({
-          title: '订单刷新成功',
-          icon: 'success',
-          mask: true
-        });
-      }, 2000)
     }
   }
 }

@@ -1,14 +1,38 @@
 <template>
-  <image src="http://p70pqu6ys.bkt.clouddn.com/%E7%A9%BA%E9%97%B4%E5%88%B7%E8%B5%9E%E5%8D%A0%E4%BD%8Dbanner@3x.png" class="banner-img">
+  <div class="shell-warp">
+    <image src="http://p70pqu6ys.bkt.clouddn.com/%E7%A9%BA%E9%97%B4%E5%88%B7%E8%B5%9E%E5%8D%A0%E4%BD%8Dbanner@3x.png" class="banner-img">
+      <div class="container-bootom flex">
+        <div class="cb-item" style="background: url('http://p7o5mvmp4.bkt.clouddn.com/%E7%BD%91%E7%BA%A2%E7%BD%91%E5%90%8D@3x.png'); background-size: 100% 100%;" @tap="_toDetailContent('nickname', '情侣网名')">
+          <div class="cb-item-title flex" style="bottom: 0;justify-content: flex-start;text-indent: 30rpx;">网红网名</div>
+        </div>
+        <div class="cb-item" style="background: url('http://p7o5mvmp4.bkt.clouddn.com/%E7%BD%91%E7%BA%A2%E7%AD%BE%E5%90%8D@3x.png'); background-size: 100% 100%;" @tap="_toDetailContent('sign', '励志签名')">
+          <div class="cb-item-title flex" style="bottom: 0;justify-content: flex-end; padding-right: 30rpx;">网红签名</div>
+        </div>
+        <div class="cb-item" style="background: url('http://p7o5mvmp4.bkt.clouddn.com/%E7%BD%91%E7%BA%A2%E8%83%8C%E6%99%AF@3x.png'); background-size: 100% 100%;" @tap="_toDetailContent('picture', '唯美图片')">
+          <div class="cb-item-title flex" style="top: 0;justify-content: flex-start;text-indent: 30rpx;">网红背景</div>
+        </div>
+        <div class="cb-item" style="background: url('http://p7o5mvmp4.bkt.clouddn.com/%E7%BD%91%E7%BA%A2%E5%A4%B4%E5%83%8F@3x.png'); background-size: 100% 100%;" @tap="_toDetailContent('avatar', '卡通动漫头像')">
+          <div class="cb-item-title flex" style="top: 0;justify-content: flex-end; padding-right: 30rpx;">网红头像</div>
+        </div>
+        <div class="cb-item-center" style="background: url('http://p7o5mvmp4.bkt.clouddn.com/%E7%BD%91%E7%BA%A2%E5%A3%81%E7%BA%B8-%E6%B2%A1%E6%9C%89%E7%99%BD%E8%BE%B9@3x.png'); background-size: 100% 100%;" @tap="_toDetailContent('wallpaper', '动漫卡通')">
+          <div class="cb-item-title flex" style="top: 58%;">网红壁纸</div>
+        </div>
+      </div>
+  </div>
 </template>
 <script>
 import wepy from 'wepy'
+import notice from '../../pages/utils/WxNotificationCenter'
 export default class skin extends wepy.component {
   components = {}
-  data = {
-  }
+  data = {}
 
   methods = {
+    _toDetailContent(type, category) {
+      wx.navigateTo({
+        url: `./recreationcontent?type=${type}&category=${category}`,
+      })
+    }
   }
   onLoad() {
     // wx.setNavigationBarTitle({
@@ -25,13 +49,66 @@ export default class skin extends wepy.component {
 
 </script>
 <style scoped>
- page{
-   height: 100%;
-   display: flex;
-   justify-content: center;
- }
- .banner-img{
+page {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.shell-warp {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+}
+
+.banner-img {
   width: 100%;
   height: 360rpx;
- }
+}
+
+.container-bootom {
+  position: absolute;
+  top: 360rpx;
+  bottom: 0;
+  width: 100%;
+  flex-wrap: wrap;
+  align-content: center;
+}
+
+.cb-item {
+  width: 42%;
+  padding-top: 42%;
+  position: relative;
+  overflow: hidden;
+  /*margin: 4%;*/
+}
+
+.cb-item:nth-child(2n) {
+  margin: 4% 4% 4% 2%;
+}
+
+.cb-item:nth-child(2n + 1) {
+  margin: 4% 2% 4% 4%;
+}
+
+.cb-item-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 45%;
+  padding-top: 45%;
+  border-radius: 1000px;
+  z-index: 9999;
+}
+
+.cb-item-title {
+  position: absolute;
+  height: 120rpx;
+  left: 0;
+  right: 0;
+  color: #fff;
+  font-size: 28rpx;
+}
+
 </style>

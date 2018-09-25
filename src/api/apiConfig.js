@@ -5,8 +5,8 @@ const adapter = wepyAxiosAdapter(axios)
 axios.defaults.adapter = adapter
 
 const apiOptions = {
-	marketPosition: 'WX',
-	server_url: 'https://dev.melonblock.com/wechat'
+	market_position: 'WX',
+	server_url: 'https://qzone.melonblock.com/wechat'
 }
 const options = {
 	headers: {

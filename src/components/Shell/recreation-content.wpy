@@ -1,0 +1,16 @@
+<template>
+  <div>
+  	123456
+  </div>
+</template>
+<script>
+import wepy from 'wepy'
+export default class recont extends wepy.component {
+
+}
+
+</script>
+<style scoped>
+
+
+</style>

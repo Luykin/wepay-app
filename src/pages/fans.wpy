@@ -17,9 +17,10 @@
   // import skin from '../components/skin'
   import skin from '../components/Shell/nominate'
   import notice from './utils/WxNotificationCenter'
+  const globalData = wepy.$instance.globalData
   export default class fans extends wepy.page {
     config = {
-      "navigationBarTitleText": "快粉丝助手",
+      "navigationBarTitleText": "快点点上热门",
       "navigationBarBackgroundColor": "#F04F43",
       "navigationBarTextStyle": "white",
       "disableScroll": true
@@ -32,7 +33,7 @@
     }
     data = {
       jumpAppId: "",
-      showType: true
+      showType: null // 不存在是审核
     }
     props = {
 
@@ -45,12 +46,13 @@
     }
     onLoad() {
       notice.on("config", (data)=> {
-        if (!data) {
-          this.showType = null
-          this.$apply();
-        }
+        console.log(data)
+        this.showType = data
+        this.$apply();
       },this)
-      // this.methods._getConfig(this)
+      this.showType = globalData.showType
+      this.$apply();
+      // console.log('zhuye', this.showType)
     }
   }
 

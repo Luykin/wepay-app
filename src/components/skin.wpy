@@ -1,3 +1,71 @@
+<template>
+  <scroll-view class="jokeList" scroll-y bindscrolltolower="loadMore">
+    <repeat for="{{jokes}}" index="index" item="item" key="index">
+      <view class="jokeitem">
+        <text class="joketext">{{item.content}}</text>
+      </view>
+    </repeat>
+  </scroll-view>
+</template>
+<script>
+import wepy from 'wepy'
+export default class skin extends wepy.component {
+
+  components = {
+
+  }
+  data = {
+    jokes: [],
+    page: 1,
+    pagesize: 10
+  }
+
+  methods = {
+    getJokes(page, pageSize, that) {
+      wepy.request({
+        url: `${that.$parent.$parent.globalData.server_url}/get_jokes`,
+        data: {
+
+          key: that.$parent.$parent.globalData.util.getKey(),
+          page: page,
+          pagesize: pageSize,
+          sort: 'desc'
+
+        },
+        header: { "Content-Type": "application/x-www-form-urlencoded" },
+        method: 'POST',
+        success: res => {
+
+          that.jokes = [...that.jokes, ...res.data.result.data];
+          that.$apply();
+          wx.showToast({
+            title: "加载中",
+            icon: "loading",
+            mask: true
+          })
+        }
+      });
+    },
+    loadMore() {
+      this.page++;
+      this.methods.getJokes(this.page, this.pagesize, this)
+    }
+  }
+  onLoad() {
+    wx.setNavigationBarTitle({
+      title: '笑话'
+    })
+    wx.setTabBarItem({
+      index: 0,
+      text: '笑话',
+      iconPath: "assets/index/icon1-unselected.png",
+      selectedIconPath: "assets/index/icon1-active.png"
+    })
+    this.methods.getJokes(this.page, this.pagesize, this)
+  }
+}
+
+</script>
 <style lang="scss">
  page{
    height: 100%;
@@ -26,74 +94,3 @@
      }
  }
 </style>
-<template>
-
-        <scroll-view class="jokeList" scroll-y bindscrolltolower="loadMore">
-              <repeat for="{{jokes}}" index="index" item="item" key="index">
-                  <view class="jokeitem">
-                     <text class="joketext">{{item.content}}</text>
-                  </view>
-              </repeat>
-        </scroll-view>
-
-</template>
-
-<script>
-  import wepy from 'wepy'
-  export default class skin extends wepy.component {
-
-    components = {
-
-    }
-    data = {
-      jokes:[],
-      page:1,
-      pagesize:10
-    }
-
-    methods = {
-      getJokes(page,pageSize,that)
-      {
-              wepy.request({
-                  url:`${that.$parent.$parent.globalData.server_url}/get_jokes`,
-                  data:{
-                    
-                     key:that.$parent.$parent.globalData.util.getKey(),
-                     page:page,
-                     pagesize:pageSize,
-                     sort:'desc'
-                    
-                  },
-                  header: { "Content-Type": "application/x-www-form-urlencoded" },
-                  method: 'POST',
-                  success:res=>{
-                   
-                    that.jokes=[...that.jokes,...res.data.result.data];
-                    that.$apply();
-                    wx.showToast({
-                      title:"加载中",
-                      icon:"loading",
-                      mask:true
-                    })
-                  }
-                });
-      },
-      loadMore(){
-        this.page++;
-        this.methods.getJokes(this.page,this.pagesize,this)
-      }
-    }
-    onLoad() {  
-      wx.setNavigationBarTitle({
-       title: '笑话'
-        })
-        wx.setTabBarItem({
-          index: 0,
-          text: '笑话',
-          iconPath: "assets/index/icon1-unselected.png",
-          selectedIconPath: "assets/index/icon1-active.png"
-      })
-      this.methods.getJokes(this.page,this.pagesize,this)
-     }
-  }
-</script>

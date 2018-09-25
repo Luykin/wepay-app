@@ -5,6 +5,7 @@
   import { getConfig, userAction } from './api/index'
   import sensors from './pages/utils/sensorsdata.min';
   import notice from './pages/utils/WxNotificationCenter'
+  import {apiOptions} from './api/apiConfig'
   export default class extends wepy.app {
     constructor() {
       super()
@@ -12,11 +13,11 @@
     }
 
     globalData = {
-      uaid: 30009,
-      payment_id: 4,
+      uaid: 31010,
+      payment_id: 5,
       statusCode: 200,
-      appName: '快粉丝助手',
-      version: '2.1.4',
+      appName: '快点点上热门',
+      version: '2.1.5',
       code: "",
       util: util,
       islogin: null,
@@ -25,27 +26,34 @@
       jumpAppId: null,
       sensors: sensors,
       userInfoNeedUpdata: null,
-      marketPosition: 'WX',
-      keys: "has_reviewed_30009",
-      server_url: 'https://dev.melonblock.com/wechat',
+      marketPosition: apiOptions.market_position,
+      keys: "has_reviewed_31010",
+      server_url: apiOptions.server_url,
     }
     async _getConfig(that) {
       try {
         const ret = await getConfig(that.globalData.uaid, that.globalData.keys)
         const value = JSON.parse(ret.data[0].value)
-        if (value.version == that.globalData.version && value.code == 1) {
-          that.globalData.showType = true;
-          wx.setNavigationBarTitle({
-            title: that.globalData.appName
-          })
-          wx.setTabBarItem({
-            index: 0,
-            text: '圈粉',
-            iconPath: "assets/index/icon1-unselected.png",
-            selectedIconPath: "assets/index/icon1-active.png"
-          })
+        if (value.version == that.globalData.version) {
+          if (value.code == 1) {
+            that.globalData.showType = true;
+            notice.emit('config', true)
+            wx.setNavigationBarTitle({
+              title: that.globalData.appName
+            })
+            wx.setTabBarItem({
+              index: 0,
+              text: '圈粉',
+              iconPath: "assets/index/icon1-unselected.png",
+              selectedIconPath: "assets/index/icon1-active.png"
+            })
+          } else {
+            notice.emit('config', null)
+          }
         } else {
-          notice.emit('config', null)
+          that.globalData.showType = true;
+          notice.emit('config', true)
+          // notice.emit('config', that.globalData.showType)
         }
       } catch(err) {
         notice.emit('config', null)
@@ -99,11 +107,12 @@
       'pages/record',
       'pages/myOrder',
       'pages/teach',
-      'pages/refund'
+      'pages/refund',
+      'pages/recreationcontent'
       ],
       "window": {
         "backgroundTextStyle": 'light',
-        "navigationBarTitleText": '快粉丝助手',
+        "navigationBarTitleText": '快点点上热门',
         "navigationBarTextStyle": 'white'
       },
       "tabBar": {

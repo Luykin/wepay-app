@@ -143,6 +143,7 @@ export default class header extends wepy.component {
         success: res => {
           if (res.code) {
             that.$parent.$parent.globalData.code = res.code;
+            console.log(res.code)
             wepy.request({
               url: `${that.$parent.$parent.globalData.server_url}/login`,
               data: {
@@ -161,7 +162,6 @@ export default class header extends wepy.component {
                   that.user = res.data.user;
                   notice.emit('startUpdateUser')
                   that.$apply();
-                  wx.hideLoading();
                   that.$parent.$parent.globalData.sensors.login(res.data.user.id);
                   that.$parent.$parent.globalData.sensors.init();
                   that.$parent.$parent.globalData.sensors.track('WxLogin', {});
@@ -170,6 +170,9 @@ export default class header extends wepy.component {
               },
               fail: res => {
                 console.log(res);
+              },
+              complete: res => {
+                wx.hideLoading();
               }
             });
           }

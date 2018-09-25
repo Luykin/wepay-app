@@ -1,0 +1,138 @@
+<template>
+  <div class="container flex">
+    <repeat for="{{dataList}}" key="id" index='index' item='item'>
+      <div wx:if="{{options.type != 'avatar' && options.type != 'picture' && options.type != 'wallpaper'}}" class="text-item flex">{{item.nickname || item.content}}</div>
+      <div style="background: url({{item.image || item.avatar}}); background-size: 100% 100%;" wx:if="{{item.image || item.avatar}}" wx:if="{{options.type == 'avatar' || options.type == 'picture' || options.type == 'wallpaper'}}" class="image-item" @tap="imgYu" data-src="{{item.image || item.avatar}}"></div>
+    </repeat>
+  </div>
+</template>
+<script>
+import wepy from 'wepy'
+import { getOtherInfo } from '../api/index'
+
+export default class record extends wepy.page {
+  config = {
+    "navigationBarTitleText": '有趣网红',
+    "navigationBarBackgroundColor": '#F04F43',
+    "enablePullDownRefresh": true,
+    "backgroundTextStyle": "dark"
+  }
+  components = {
+
+  }
+  data = {
+    dataList: [],
+    page: 0,
+    pageSize: 16,
+    options: null,
+    imgList: []
+  }
+  computed = {
+
+  }
+  methods = {
+    imgYu(event) {
+    	let src
+    	if (event.currentTarget.dataset.src.indexOf('http') < 0) {
+    		src = 'http://' + event.currentTarget.dataset.src; //获取data-src
+    	} else {
+    		src = event.currentTarget.dataset.src; //获取data-src
+    	}
+      const imglist = this.imgList
+      wx.previewImage({
+        current: src, // 当前显示图片的http链接
+        urls: imglist
+      })
+    }
+  }
+  async _getOtherInfo(type, category, refresh) {
+    try {
+      const realut = await getOtherInfo(type, category, this.page, this.pageSize)
+      if (realut.status == 200) {
+        if (refresh) {
+        	console.log(realut.data.data.data)
+          this.dataList = realut.data.data.data
+        } else {
+          this.dataList = [...this.dataList, ...realut.data.data.data]
+        }
+        if (type == 'avatar' || type == 'picture' || type == 'wallpaper') {
+        	let ret = []
+          this.dataList.forEach((item) => {
+            ret.push('http://' + (item.image || item.avatar))
+          })
+          this.imgList = ret
+        }
+        wx.stopPullDownRefresh();
+        this.$apply();
+      }
+    } catch (err) {
+      console.log(err)
+    }
+  }
+  onLoad(options) {
+    if (options.type && options.category) {
+    	console.log(options.type)
+      this._getOtherInfo.call(this, options.type, options.category, true)
+      this.options = options
+    }
+  }
+  onShow() {
+
+  }
+  // 下拉刷新
+  onPullDownRefresh() {
+    if (this.options) {
+      this.page = 0
+      this._getOtherInfo.call(this, this.options.type, this.options.category, true)
+      this.$apply();
+    }
+  }
+  onReachBottom() {
+    if (this.options) {
+      this.page += 1
+      this._getOtherInfo.call(this, this.options.type, this.options.category)
+      this.$apply();
+    }
+  }
+
+}
+
+</script>
+<style scoped>
+.container {
+  flex-wrap: wrap;
+  flex-direction: row;
+}
+
+.text-item {
+  height: auto;
+  min-height: 80rpx;
+  margin: 10rpx 0;
+  width: 85%;
+  padding: 10rpx 2%;
+  line-height: 40rpx;
+  font-size: 28rpx;
+  background: #fff;
+  color: #353535;
+  border-radius: 15rpx;
+}
+
+.image-item {
+  width: 40%;
+}
+
+.image-item:nth-child(2n-1) {
+  margin: 20rpx 2% 20rpx 5%;
+}
+
+.image-item:nth-child(2n) {
+  margin: 20rpx 5% 20rpx 2%;
+}
+
+.image-item:after {
+  content: '';
+  display: block;
+  padding-top: 100%;
+}
+
+</style>

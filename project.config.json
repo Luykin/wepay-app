@@ -1,5 +1,5 @@
 {
-  "description": "快粉丝助手",
+  "description": "快点点上热门",
   "setting": {
     "urlCheck": true,
     "es6": false,
@@ -7,7 +7,7 @@
     "minified": false
   },
   "compileType": "miniprogram",
-  "appid": "wxda79715b036dfe03",
-  "projectname": "30009",
+  "appid": "wx0f2b1c1aee863536",
+  "projectname": "31010",
   "miniprogramRoot": "./dist"
 }
