@@ -1,5 +1,5 @@
 {
-  "description": "快点点上热门",
+  "description": "趣玩助手",
   "setting": {
     "urlCheck": true,
     "es6": false,
@@ -7,7 +7,7 @@
     "minified": false
   },
   "compileType": "miniprogram",
-  "appid": "wx0f2b1c1aee863536",
+  "appid": "wxda79715b036dfe03",
   "projectname": "31010",
   "miniprogramRoot": "./dist"
 }

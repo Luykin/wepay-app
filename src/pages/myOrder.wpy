@@ -1,5 +1,6 @@
 <template>
-  <view class="container">
+  <recont wx:if="{{!showType}}"></recont>
+  <view class="container" wx:if="{{showType}}">
     <repeat for="{{orders}}" index="index" key="index" item="item">
       <view class="orderBox">
         <view class="labelBox">
@@ -23,102 +24,127 @@
   </view>
 </template>
 <script>
-import wepy from 'wepy'
-import notice from './utils/WxNotificationCenter'
+  import wepy from 'wepy'
+  import notice from './utils/WxNotificationCenter'
+  import recont from '../components/Shell/recreation-content'
+  const globalData = wepy.$instance.globalData
+  export default class myOrder extends wepy.page {
+    config = {
+      "navigationBarTitleText": "每日一笑",
+      "navigationBarBackgroundColor": "#F04F43",
+      "navigationBarTextStyle": "white",
+      "disableScroll": true,
+      "enablePullDownRefresh": true,
+      "backgroundTextStyle": "dark"
+    }
+    components = {
+      recont
+    }
+    data = {
+      orders: [],
+      showEmpty: false,
+      showType: null
+    }
 
-export default class myOrder extends wepy.page {
-  config = {
-    "navigationBarTitleText": "我的订单",
-    "navigationBarBackgroundColor": "#F04F43",
-    "navigationBarTextStyle": "white",
-    "disableScroll": true,
-    "enablePullDownRefresh": true,
-    "backgroundTextStyle": "dark"
-  }
-  components = {
+    computed = {
 
-  }
-  data = {
-    orders: [],
-    showEmpty: false
-  }
+    }
 
-  computed = {
-
-  }
-
-  methods = {
-    getOrders(that) {
-      wepy.request({
-        url: `${that.$parent.globalData.server_url}/task_list`,
-        data: {
-          key: that.$parent.globalData.util.getKey(),
-          user_id: that.$parent.globalData.userInfo.id
-        },
-        header: { "Content-Type": "application/x-www-form-urlencoded" },
-        method: 'POST',
-        success: res => {
-          that.orders = res.data;
-          that.orders.forEach(element => {
-            element.create = that.methods.timeChange(element.create);
-            if (element.status == 0) {
-              element.status = "准备中";
-            } else if (element.status == 1) {
-              element.status = "进行中";
-            } else if (element.status == 2) {
-              element.status = "已完成";
-            } else if (element.status == 3) {
-              element.status = "提交成功，支付失败";
-            } else if (element.status == 4) {
-              element.status = "人工服务退款中";
-            } else if (element.status == 5) {
-              element.status = "已退粉币";
-            } else if (element.status == -6) {
-              element.status = "填写错误";
-            } else if (element.status == -8) {
-              element.status = "订单无访问权限";
+    methods = {
+      getOrders(that) {
+        wepy.request({
+          url: `${that.$parent.globalData.server_url}/task_list`,
+          data: {
+            key: that.$parent.globalData.util.getKey(),
+            user_id: that.$parent.globalData.userInfo.id
+          },
+          header: { "Content-Type": "application/x-www-form-urlencoded" },
+          method: 'POST',
+          success: res => {
+            that.orders = [ ...that.orders ,...res.data];
+            that.orders.forEach(element => {
+              element.create = that.methods.timeChange(element.create);
+              if (element.status == 0) {
+                element.status = "准备中";
+              } else if (element.status == 1) {
+                element.status = "进行中";
+              } else if (element.status == 2) {
+                element.status = "已完成";
+              } else if (element.status == 3) {
+                element.status = "提交成功，支付失败";
+              } else if (element.status == 4) {
+                element.status = "人工服务退款中";
+              } else if (element.status == 5) {
+                element.status = "已退粉币";
+              } else if (element.status == -6) {
+                element.status = "填写错误";
+              } else if (element.status == -8) {
+                element.status = "订单无访问权限";
+              }
+            });
+            if (that.orders.length == 0) {
+              that.showEmpty = true;
+            } else {
+              that.showEmpty = false;
             }
-          });
-          if (that.orders.length == 0) {
-            that.showEmpty = true;
-          } else {
-            that.showEmpty = false;
+            that.$apply();
+          },
+          complete: res => {
+            wx.stopPullDownRefresh();
           }
-          that.$apply();
-        },
-        complete: res => {
-          wx.stopPullDownRefresh();
-        }
-      });
-    },
-    timeChange(time) {
-      let date = new Date(time * 1000)
-      const M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-'
-      const D = date.getDate() < 10 ? '0' + date.getDate() + ':' : date.getDate() + ' '
-      const h = date.getHours() < 10 ? '0' + date.getHours() + ':' : date.getHours() + ':'
-      const m = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()
-      return M + D + h + m
-    }
+        });
+      },
+      timeChange(time) {
+        let date = new Date(time * 1000)
+        const M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-'
+        const D = date.getDate() < 10 ? '0' + date.getDate() + ':' : date.getDate() + ' '
+        const h = date.getHours() < 10 ? '0' + date.getHours() + ':' : date.getHours() + ':'
+        const m = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()
+        return M + D + h + m
+      }
 
-  }
-  onLoad() {
-    notice.on('finishUpdateUser', () => {
-      this.methods.getOrders(this);
+    }
+    onLoad() {
+      notice.on('finishUpdateUser', () => {
+        this.methods.getOrders(this);
+        this.$apply();
+      }, this)
+      notice.on("config", (data) => {
+        console.log(data)
+        this.showType = data
+        if (data == 1) {
+          wx.setTabBarItem({
+            index: 1,
+            text: '订单',
+            iconPath: "assets/index/icon3-unselected.png",
+            selectedIconPath: "assets/index/icon3-active.png"
+          })
+        }
+        this.$apply();
+      }, this)
+      this.showType = globalData.showType
       this.$apply();
-    }, this)
-    if (this.$parent.globalData.userInfo) {
-      this.methods.getOrders(this);
-    } else {
-      this.showEmpty = true;
-      this.$apply();
+      if (this.$parent.globalData.userInfo) {
+        this.methods.getOrders(this);
+      } else {
+        this.showEmpty = true;
+        this.$apply();
+      }
+    }
+    onReachBottom() {
+      if (!this.showType) {
+        notice.emit('orderbottom')
+      }
+    }
+    onPullDownRefresh() {
+      if (this.$parent.globalData.userInfo) {
+        this.methods.getOrders(this);
+        if (!this.showType) {
+          notice.emit('orderrefresh')
+        }
+      }
     }
   }
-  onPullDownRefresh() {
-    if (this.$parent.globalData.userInfo) {
-      this.methods.getOrders(this);
-    }
-  }
-}
 
 </script>
 <style lang="scss">
@@ -179,4 +205,9 @@ export default class myOrder extends wepy.page {
   }
 }
 
+</style>
+<style >
+page{
+  overflow-y: scroll !important;
+}
 </style>

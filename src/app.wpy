@@ -13,10 +13,10 @@
     }
 
     globalData = {
-      uaid: 31010,
-      payment_id: 5,
+      uaid: 30009,
+      payment_id: 4,
       statusCode: 200,
-      appName: '快点点上热门',
+      appName: '趣玩助手',
       version: '2.1.5',
       code: "",
       util: util,
@@ -27,7 +27,7 @@
       sensors: sensors,
       userInfoNeedUpdata: null,
       marketPosition: apiOptions.market_position,
-      keys: "has_reviewed_31010",
+      keys: "has_reviewed_new_30009",
       server_url: apiOptions.server_url,
     }
     async _getConfig(that) {
@@ -46,6 +46,12 @@
               text: '圈粉',
               iconPath: "assets/index/icon1-unselected.png",
               selectedIconPath: "assets/index/icon1-active.png"
+            })
+            wx.setTabBarItem({
+              index: 1,
+              text: '订单',
+              iconPath: "assets/index/icon3-unselected.png",
+              selectedIconPath: "assets/index/icon3-active.png"
             })
           } else {
             notice.emit('config', null)
@@ -127,7 +133,7 @@
         },
         {
           "pagePath": "pages/myOrder",
-          "text": "订单",
+          "text": "笑话",
           "iconPath": "assets/index/icon3-unselected.png",
           "selectedIconPath": "assets/index/icon3-active.png"
         },

@@ -1,7 +1,36 @@
 <template>
   <div class="shell-warp">
-    <image src="http://p70pqu6ys.bkt.clouddn.com/%E7%A9%BA%E9%97%B4%E5%88%B7%E8%B5%9E%E5%8D%A0%E4%BD%8Dbanner@3x.png" class="banner-img">
-      <div class="container-bootom flex">
+    <image src="http://p7o5mvmp4.bkt.clouddn.com/%E5%B0%8F%E7%BA%A2%E4%B9%A6%E7%BD%91%E7%BA%A2%E5%A3%81%E7%BA%B8@3x.png" class="banner-img" @tap="_toDetailContent('wallpaper', '动漫卡通')">
+      <div class="inner-box flex" style="right: 55%;align-content: center;">
+        <div class="bib-title flex">小红书网红壁纸</div>
+        <div class="bib-min-title flex">热门壁纸，随心选择</div>
+      </div>
+    </image>
+    <image src="http://p7o5mvmp4.bkt.clouddn.com/%E5%B0%8F%E7%BA%A2%E4%B9%A6%E5%A4%B4%E5%83%8F@3x.png" class="bottom-items" @tap="_toDetailContent('avatar', '卡通动漫头像')">
+      <div class="inner-box flex">
+        <div class="bib-title flex">小红书头像</div>
+        <div class="bib-min-title flex">提升人气，从这开始</div>
+      </div>
+    </image>
+    <image src="http://p7o5mvmp4.bkt.clouddn.com/%E5%B0%8F%E7%BA%A2%E4%B9%A6%E7%BD%91%E5%90%8D@3x.png" class="bottom-items" @tap="_toDetailContent('nickname', '情侣网名')">
+      <div class="inner-box flex">
+        <div class="bib-title flex">小红书网名</div>
+        <div class="bib-min-title flex">情侣网名，浪漫唯美</div>
+      </div>
+    </image>
+    <image src="http://p7o5mvmp4.bkt.clouddn.com/%E5%B0%8F%E7%BA%A2%E4%B9%A6%E7%AD%BE%E5%90%8D@3x.png" class="bottom-items" @tap="_toDetailContent('sign', '励志签名')">
+      <div class="inner-box flex">
+        <div class="bib-title flex">小红书签名</div>
+        <div class="bib-min-title flex">有趣签名，万众无一</div>
+      </div>
+    </image>
+    <image src="http://p7o5mvmp4.bkt.clouddn.com/%E5%B0%8F%E7%BA%A2%E4%B9%A6%E8%83%8C%E6%99%AF@3x.png" class="bottom-items" @tap="_toDetailContent('picture', '唯美图片')">
+      <div class="inner-box flex">
+        <div class="bib-title flex">小红书背景</div>
+        <div class="bib-min-title flex">名片背景，完美搭配</div>
+      </div>
+    </image>
+    <!--       <div class="container-bootom flex">
         <div class="cb-item" style="background: url('http://p7o5mvmp4.bkt.clouddn.com/%E7%BD%91%E7%BA%A2%E7%BD%91%E5%90%8D@3x.png'); background-size: 100% 100%;" @tap="_toDetailContent('nickname', '情侣网名')">
           <div class="cb-item-title flex" style="bottom: 0;justify-content: flex-start;text-indent: 30rpx;">网红网名</div>
         </div>
@@ -17,24 +46,24 @@
         <div class="cb-item-center" style="background: url('http://p7o5mvmp4.bkt.clouddn.com/%E7%BD%91%E7%BA%A2%E5%A3%81%E7%BA%B8-%E6%B2%A1%E6%9C%89%E7%99%BD%E8%BE%B9@3x.png'); background-size: 100% 100%;" @tap="_toDetailContent('wallpaper', '动漫卡通')">
           <div class="cb-item-title flex" style="top: 58%;">网红壁纸</div>
         </div>
-      </div>
-  </div>
-</template>
-<script>
-import wepy from 'wepy'
-import notice from '../../pages/utils/WxNotificationCenter'
-export default class skin extends wepy.component {
-  components = {}
-  data = {}
+      </div> -->
+    </div>
+  </template>
+  <script>
+    import wepy from 'wepy'
+    import notice from '../../pages/utils/WxNotificationCenter'
+    export default class skin extends wepy.component {
+      components = {}
+      data = {}
 
-  methods = {
-    _toDetailContent(type, category) {
-      wx.navigateTo({
-        url: `./recreationcontent?type=${type}&category=${category}`,
-      })
-    }
-  }
-  onLoad() {
+      methods = {
+        _toDetailContent(type, category) {
+          wx.navigateTo({
+            url: `./recreationcontent?type=${type}&category=${category}`,
+          })
+        }
+      }
+      onLoad() {
     // wx.setNavigationBarTitle({
     //   title: '笑话'
     // })
@@ -62,8 +91,22 @@ page {
 }
 
 .banner-img {
-  width: 100%;
-  height: 360rpx;
+  width: 94%;
+  height: 300rpx;
+  margin: 20rpx;
+  position: relative;
+}
+
+.inner-box {
+  position: absolute;
+  left: 0;
+  right: 30%;
+  bottom: 0;
+  top: 0;
+  z-index: 99;
+  color: #fff;
+  flex-wrap: wrap;
+  align-content: flex-end;
 }
 
 .container-bootom {
@@ -110,5 +153,24 @@ page {
   color: #fff;
   font-size: 28rpx;
 }
-
+/*// 2018.09.25*/ 
+.bib-title{
+  width: 100%;
+  font-size: 32rpx;
+  height: 70rpx;
+  text-shadow: rgba(0,0,0,.5) 0 0 10rpx;
+}
+.bib-min-title{
+  width: 100%;
+  font-size: 22rpx;
+  height: 50rpx;
+  text-shadow: rgba(0,0,0,.5) 0 0 10rpx;
+}
+.bottom-items{
+  width: 45.5%;
+  margin-left: 2.5%;
+  height: 250rpx;
+  margin-bottom: 20rpx;
+  position: relative;
+}
 </style>

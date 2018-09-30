@@ -59,3 +59,21 @@ export function getOtherInfo(type, category, page, num) {
       return Promise.resolve(err)
     })
 }
+// 获取笑话
+
+export function getJokes(sort, page, pagesize) {
+  const url = `${apiOptions.server_url}/get_jokes`
+  let data = {
+    sort,
+    page,
+    pagesize
+  }
+  return axios.post(url, Object.assign({ sign: getSign(data) }, data), options)
+    .then((res) => {
+      return Promise.resolve(res)
+    })
+    .catch((err) => {
+      console.log(err)
+      return Promise.resolve(err)
+    })
+}

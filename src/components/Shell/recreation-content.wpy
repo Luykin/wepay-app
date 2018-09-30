@@ -1,16 +1,67 @@
 <template>
-  <div>
-  	123456
+  <div class="shell-warp">
+    <repeat for="{{jokeList}}" key="index" index="index" item="item">
+      <div class="joke-item flex">{{item.content}}</div>
+    </repeat>
   </div>
 </template>
 <script>
 import wepy from 'wepy'
+import { getJokes } from '../../api/index'
+import notice from '../../pages/utils/WxNotificationCenter'
 export default class recont extends wepy.component {
-
+  data = {
+    page: 0,
+    pagesize: 10,
+    jokeList: []
+  }
+  async _getJokes() {
+    const ret = await getJokes('desc', this.page, this.pagesize)
+    // console.log(ret)
+    if (ret.status == 200) {
+    	if (this.page == 0) {
+    		this.jokeList = ret.data.result.data
+    	} else {
+    		this.jokeList = [...this.jokeList, ...ret.data.result.data]
+    	}
+      console.log(this.jokeList)
+      this.$apply();
+    }
+  }
+  // onReachBottom() {
+  // 	console.log(1)
+  // }
+  onLoad() {
+    this._getJokes()
+    notice.on('orderbottom', () => {
+    	this.page += 1
+    	this._getJokes()
+    }, this)
+    notice.on('orderrefresh',() => {
+    	this.page = 0
+    	this._getJokes()
+    }, this)
+  }
 }
 
 </script>
 <style scoped>
 
+.shell-warp {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+}
+
+.joke-item {
+  width: 90%;
+  padding: 10rpx 2%;
+  background:#F04F43;
+  color: #fff;
+  line-height: 40rpx;
+  margin: 20rpx auto;
+  border-radius: 16rpx;
+  font-size: 26rpx;
+}
 
 </style>

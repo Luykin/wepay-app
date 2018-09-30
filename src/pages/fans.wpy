@@ -20,7 +20,7 @@
   const globalData = wepy.$instance.globalData
   export default class fans extends wepy.page {
     config = {
-      "navigationBarTitleText": "快点点上热门",
+      "navigationBarTitleText": "趣玩助手",
       "navigationBarBackgroundColor": "#F04F43",
       "navigationBarTextStyle": "white",
       "disableScroll": true
@@ -52,7 +52,6 @@
       },this)
       this.showType = globalData.showType
       this.$apply();
-      // console.log('zhuye', this.showType)
     }
   }
 
